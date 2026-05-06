@@ -30,9 +30,6 @@ export default function DashboardLayout() {
   const handleNavClick = (mode: any) => {
     setViewMode(mode);
     setMobileMenuOpen(false); // Cerrar menú en celular al hacer clic
-    if (mode === 'analytics' || mode === 'support' || mode === 'settings') {
-      alert('Esta sección está en construcción. Próximamente disponible.');
-    }
   };
 
   return (
@@ -148,7 +145,7 @@ export default function DashboardLayout() {
       {/* Main Content */}
       <main className="flex-1 h-[calc(100vh-56px)] md:h-screen overflow-y-auto bg-neutral-50 p-4 md:p-8">
         {isAdmin ? (
-          <AdminDashboard />
+          <AdminDashboard viewMode={viewMode} />
         ) : (
           <Outlet />
         )}

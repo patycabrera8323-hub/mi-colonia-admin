@@ -38,7 +38,7 @@ interface UserDocument extends UserData {
   id: string;
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: string }) {
   const [users, setUsers] = useState<UserDocument[]>([]);
   const [businesses, setBusinesses] = useState<BusinessData[]>([]);
   const [search, setSearch] = useState('');
@@ -212,7 +212,10 @@ export default function AdminDashboard() {
             <div className="bg-blue-900 p-2.5 rounded-2xl shadow-xl">
               <ShieldCheck className="w-8 h-8 text-white" />
             </div>
-            Súper Usuario <span className="text-blue-600 ml-2">Admin</span>
+            {viewMode === 'admin' && <>Súper Usuario <span className="text-blue-600 ml-2">Admin</span></>}
+            {viewMode === 'analytics' && <>Métricas y <span className="text-blue-600 ml-2">Finanzas</span></>}
+            {viewMode === 'support' && <>Centro de <span className="text-blue-600 ml-2">Soporte</span></>}
+            {viewMode === 'settings' && <>Configuración <span className="text-blue-600 ml-2">Global</span></>}
           </h1>
           <p className="text-neutral-500 font-medium mt-2 max-w-lg">
             Monitoriza el pulso de la plataforma, valida pagos y gestiona el ecosistema de negocios en tiempo real.
@@ -228,8 +231,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats and Analytics Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* 📈 SECCIÓN DE ANALÍTICAS Y FINANZAS */}
+      {viewMode === 'analytics' && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Verification Pie Chart */}
         <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm lg:col-span-1 flex flex-col items-center">
           <h3 className="text-xs font-black uppercase text-neutral-400 tracking-widest text-center mb-4 flex items-center gap-2">
@@ -305,11 +309,13 @@ export default function AdminDashboard() {
             </div>
             <ArrowRight className="w-5 h-5 mt-4 opacity-50 group-hover:translate-x-1 transition-transform" />
           </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Main Table Section */}
-      <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm overflow-hidden">
+      {/* 👥 SECCIÓN DE USUARIOS Y NEGOCIOS (TABLA) */}
+      {viewMode === 'admin' && (
+        <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm overflow-hidden">
         {/* Table Toolbar */}
         <div className="p-6 md:p-8 border-b border-neutral-50 bg-neutral-50/30 flex flex-col md:flex-row justify-between gap-6 items-center border-t-2 border-emerald-500">
           <div className="relative w-full md:max-w-md">
@@ -425,6 +431,67 @@ export default function AdminDashboard() {
       )}
     </div>
   </div>
+)}
+
+      {/* 💬 SECCIÓN DE SOPORTE Y MENSAJES */}
+      {viewMode === 'support' && (
+        <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm p-8 md:p-16 text-center space-y-6">
+           <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-12 h-12 text-blue-600" />
+           </div>
+           <h2 className="text-3xl font-black text-blue-950 uppercase tracking-tighter">¿Necesitas ayuda con el sistema?</h2>
+           <p className="text-neutral-500 max-w-lg mx-auto font-medium">
+             Este es tu canal directo de comunicación con soporte técnico. Si algo falla o necesitas implementar nuevas funciones, contáctame:
+           </p>
+           <div className="flex flex-col items-center gap-4 pt-6">
+             <a href="https://wa.me/5215620950668" target="_blank" rel="noopener noreferrer" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-200">
+               Enviar WhatsApp a Soporte
+             </a>
+             <p className="text-sm font-bold text-neutral-400">Email: patycabrera8323@gmail.com</p>
+           </div>
+        </div>
+      )}
+
+      {/* ⚙️ SECCIÓN DE CONFIGURACIÓN GLOBAL (RECOMENDACIONES) */}
+      {viewMode === 'settings' && (
+        <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm p-8 md:p-12">
+           <h2 className="text-2xl font-black text-blue-950 uppercase tracking-tighter mb-8 border-b border-neutral-100 pb-6">Ajustes del Ecosistema</h2>
+           
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="space-y-4">
+                <div className="bg-blue-50 p-6 rounded-3xl">
+                  <h3 className="font-black text-blue-900 uppercase text-sm mb-2">Costos de Suscripción</h3>
+                  <p className="text-xs text-blue-700/80 mb-4">Define cuánto vas a cobrar mensual o anualmente a los negocios por estar en Mi Colonia.</p>
+                  <input type="text" placeholder="$0.00 MXN / Mes" disabled className="w-full bg-white rounded-xl p-3 text-sm font-bold cursor-not-allowed opacity-50" />
+                </div>
+                <div className="bg-purple-50 p-6 rounded-3xl">
+                  <h3 className="font-black text-purple-900 uppercase text-sm mb-2">Categorías Permitidas</h3>
+                  <p className="text-xs text-purple-700/80 mb-4">Añade o quita categorías (Comida, Salud, etc.) según lo que más pida la gente.</p>
+                  <button disabled className="bg-purple-200 text-purple-600 px-4 py-2 rounded-xl text-xs font-bold uppercase w-full opacity-50">Gestionar Etiquetas</button>
+                </div>
+             </div>
+             
+             <div className="space-y-4">
+                <div className="bg-emerald-50 p-6 rounded-3xl">
+                  <h3 className="font-black text-emerald-900 uppercase text-sm mb-2">Datos Bancarios para Cobros</h3>
+                  <p className="text-xs text-emerald-700/80 mb-4">Las cuentas donde los negocios te depositarán su membresía antes de que los actives.</p>
+                  <input type="text" placeholder="CLABE o Tarjeta" disabled className="w-full bg-white rounded-xl p-3 text-sm font-bold cursor-not-allowed opacity-50" />
+                </div>
+                <div className="bg-amber-50 p-6 rounded-3xl">
+                  <h3 className="font-black text-amber-900 uppercase text-sm mb-2">Reglas de Suspensión</h3>
+                  <p className="text-xs text-amber-700/80 mb-4">¿Cuántos días de gracia le das a un negocio antes de ocultarlo si no paga?</p>
+                  <input type="text" placeholder="Ej. 5 días" disabled className="w-full bg-white rounded-xl p-3 text-sm font-bold cursor-not-allowed opacity-50" />
+                </div>
+             </div>
+           </div>
+           
+           <div className="mt-8 text-center border-t border-neutral-100 pt-8">
+             <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">
+               * Estas funciones requieren desarrollo de base de datos *
+             </p>
+           </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       <AnimatePresence>

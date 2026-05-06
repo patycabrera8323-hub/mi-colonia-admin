@@ -1,0 +1,135 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'jicr109@gmail.com';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // -- User Entity --
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'name', 'phone', 'payment_verified', 'role', 'createdAt']) &&
+             data.keys().size() == 6 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 30 &&
+             data.payment_verified is bool &&
+             data.role is string && data.role == 'owner' &&
+             data.createdAt is number;
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        isValidUser(incoming()) &&
+        incoming().payment_verified == false &&
+        incoming().role == 'owner';
+
+      // Updates: user can change name, phone. Admin can change payment_verified.
+      allow update: if (
+        isAdmin() ||
+        (isOwner(userId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone']))
+      ) && (
+        !isAdmin() ? (
+          incoming().email == existing().email &&
+          incoming().role == existing().role &&
+          incoming().payment_verified == existing().payment_verified &&
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+    }
+
+    // -- Business Entity --
+    function isValidBusiness(data) {
+      return data.keys().hasAll(['ownerId', 'name', 'description', 'category', 'isOpen', 'createdAt']) &&
+             data.keys().size() == 6 &&
+             data.ownerId is string && data.ownerId.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.category is string && data.category.matches('^(COMIDA|RETAIL|SALUD|SERVICIOS)$') &&
+             data.isOpen is bool &&
+             data.createdAt is number;
+    }
+
+    match /businesses/{userId} {
+      // SuperUser can read all. Clients can't read directly unless it's their own or via backend.
+      // We will allow anyone to read if pago is done, but for this Admin app:
+      // Admins read all. Owner reads own.
+      allow read: if isAdmin() || isOwner(userId);
+
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        isValidBusiness(incoming()) &&
+        incoming().ownerId == userId;
+
+      allow update: if (
+        isAdmin() ||
+        (isOwner(userId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'category', 'isOpen']))
+      ) && (
+        !isAdmin() ? (
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+    }
+
+    // -- Product Entity --
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'description', 'price', 'isAvailable', 'createdAt']) &&
+             (data.keys().size() == 5 || (data.keys().size() == 6 && data.keys().hasAll(['imageUrl']) && data.imageUrl is string)) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.price is number && data.price >= 0 &&
+             data.isAvailable is bool &&
+             data.createdAt is number;
+    }
+
+    match /businesses/{userId}/products/{productId} {
+      allow read: if isAdmin() || isOwner(userId);
+
+      allow create: if isValidId(productId) && (isAdmin() || isOwner(userId)) &&
+        isValidProduct(incoming());
+
+      allow update: if (
+        isAdmin() || 
+        (isOwner(userId) &&
+         (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'isAvailable']) || 
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'isAvailable', 'imageUrl'])))
+      ) && (
+        !isAdmin() ? (
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+
+      allow delete: if isAdmin() || isOwner(userId);
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role and payment verification status.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "payment_verified": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["owner"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "name", "phone", "payment_verified", "role", "createdAt"]
+    },
+    "Business": {
+      "title": "Business",
+      "description": "Business details, 1:1 mapped to user id.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["COMIDA", "RETAIL", "SALUD", "SERVICIOS"] },
+        "isOpen": { "type": "boolean" },
+        "payment_verified": { "type": "boolean" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "deliveryArea": { "type": "string" },
+        "minDeliveryAmount": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "schedule": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["ownerId", "name", "description", "category", "isOpen", "payment_verified", "phone", "address", "deliveryArea", "paymentMethod", "schedule", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product belonging to a business.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "isAvailable": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "views": { "type": "number" }
+      },
+      "required": ["name", "description", "price", "isAvailable", "createdAt", "views"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A review for a business.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "rating", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and roles."
+    },
+    "businesses/{userId}": {
+      "schema": { "$ref": "#/entities/Business" },
+      "description": "Business profile mapped strictly to the owner's userId."
+    },
+    "businesses/{userId}/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "List of products for a single business."
+    },
+    "businesses/{userId}/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Reviews for a business."
+    }
+  }
+}

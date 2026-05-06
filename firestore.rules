@@ -1,0 +1,149 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.email == 'jicr109@gmail.com' || request.auth.token.email == 'jicr110@gmail.com');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'name', 'phone', 'role', 'createdAt']) &&
+             data.keys().size() >= 5 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 30 &&
+             (data.keys().hasAll(['payment_verified']) ? data.payment_verified is bool : true) &&
+             data.role is string && data.role == 'owner' &&
+             data.createdAt is number;
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        isValidUser(incoming()) &&
+        incoming().payment_verified == false &&
+        incoming().role == 'owner';
+
+      allow update: if (
+        isAdmin() ||
+        (isOwner(userId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone']))
+      ) && (
+        !isAdmin() ? (
+          incoming().email == existing().email &&
+          incoming().role == existing().role &&
+          incoming().payment_verified == existing().payment_verified &&
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+    }
+
+    function isValidBusiness(data) {
+      return data.keys().hasAll(['ownerId', 'name', 'description', 'category', 'isOpen', 'phone', 'address', 'deliveryArea', 'paymentMethod', 'schedule', 'createdAt']) &&
+             data.keys().size() >= 11 &&
+             data.ownerId is string && data.ownerId.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.category is string && data.category.matches('^(COMIDA|RETAIL|SALUD|SERVICIOS)$') &&
+             data.isOpen is bool &&
+             (data.keys().hasAll(['payment_verified']) ? data.payment_verified is bool : true) &&
+             data.phone is string && data.phone.size() <= 30 &&
+             data.address is string && data.address.size() <= 500 &&
+             data.deliveryArea is string && data.deliveryArea.size() <= 1000 &&
+             (data.keys().hasAll(['minDeliveryAmount']) ? data.minDeliveryAmount is string && data.minDeliveryAmount.size() <= 200 : true) &&
+             data.paymentMethod is string && data.paymentMethod.size() <= 200 &&
+             data.schedule is string && data.schedule.size() <= 1000 &&
+             data.createdAt is number;
+    }
+
+    match /businesses/{userId} {
+      allow read: if true;
+
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        isValidBusiness(incoming()) &&
+        incoming().ownerId == userId &&
+        incoming().payment_verified == false;
+
+      allow update: if (
+        isAdmin() ||
+        (isOwner(userId) && 
+         get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'category', 'isOpen', 'phone', 'address', 'deliveryArea', 'minDeliveryAmount', 'paymentMethod', 'schedule', 'logoUrl']))
+      ) && (
+        !isAdmin() ? (
+          incoming().ownerId == existing().ownerId &&
+          incoming().payment_verified == existing().payment_verified &&
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+
+      allow delete: if isAdmin() || isOwner(userId);
+    }
+
+    match /businesses/{userId}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(reviewId);
+      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'description', 'price', 'isAvailable', 'createdAt']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.price is number && data.price >= 0 &&
+             data.isAvailable is bool &&
+             (data.keys().hasAll(['imageUrl']) ? data.imageUrl is string : true) &&
+             (data.keys().hasAll(['views']) ? data.views is number : true) &&
+             data.createdAt is number;
+    }
+
+    match /businesses/{userId}/products/{productId} {
+      allow read: if true;
+
+      allow create: if isValidId(productId) && 
+        (isAdmin() || (isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true)) &&
+        isValidProduct(incoming());
+
+      allow update: if (
+        isAdmin() || 
+        (isOwner(userId) &&
+         get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true &&
+         (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'isAvailable', 'imageUrl']) || 
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'isAvailable']))) ||
+        (incoming().diff(existing()).affectedKeys().hasOnly(['views']))
+      ) && (
+        !isAdmin() && !incoming().diff(existing()).affectedKeys().hasOnly(['views']) ? (
+          incoming().createdAt == existing().createdAt
+        ) : true
+      );
+
+      allow delete: if isAdmin() || (isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true);
+    }
+  }
+}

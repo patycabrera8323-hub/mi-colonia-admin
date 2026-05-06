@@ -78,7 +78,7 @@ export default function AdminDashboard() {
     allIds.forEach(id => {
       const user = users.find(u => u.id === id);
       const business = businesses.find(b => b.id === id);
-      if (user && user.role === 'admin') return;
+      // Quitamos el filtro de admin para que todo sea visible
       if (user && user.role === 'user' && !business) return;
       
       total++;
@@ -88,7 +88,9 @@ export default function AdminDashboard() {
     });
 
     const pendingCount = total - verified;
-    const openCount = businesses.filter(b => b.isOpen).length;
+    
+    // Ahora contamos todos los negocios abiertos sin excepción
+    const openCount = businesses.filter(b => b.isOpen === true).length;
     
     return {
       total,
@@ -167,7 +169,7 @@ export default function AdminDashboard() {
       const user = users.find(u => u.id === id);
       const business = businesses.find(b => b.id === id);
       
-      if (user && user.role === 'admin') return;
+      // Permitimos ver todo en la tabla
       if (user && user.role === 'user' && !business) return;
 
       result.push({

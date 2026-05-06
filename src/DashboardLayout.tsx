@@ -115,12 +115,32 @@ export default function DashboardLayout() {
             </>
           )}
           {!isAdmin && (
-            <NavItem 
-              icon={<LayoutDashboard />} 
-              label="Mi Tienda" 
-              active={true} 
-              onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }} 
-            />
+            <>
+              <NavItem 
+                icon={<LayoutDashboard />} 
+                label="Mi Tienda" 
+                active={viewMode === 'owner'} 
+                onClick={() => handleNavClick('owner')} 
+              />
+              <NavItem 
+                icon={<PieChart />} 
+                label="Mis Estadísticas" 
+                active={viewMode === 'analytics'} 
+                onClick={() => handleNavClick('analytics')} 
+              />
+              <NavItem 
+                icon={<MessageSquare />} 
+                label="Soporte Técnico" 
+                active={viewMode === 'support'} 
+                onClick={() => handleNavClick('support')} 
+              />
+              <NavItem 
+                icon={<SettingsIcon />} 
+                label="Configuración" 
+                active={viewMode === 'settings'} 
+                onClick={() => handleNavClick('settings')} 
+              />
+            </>
           )}
           <NavItem 
             icon={<Store />} 
@@ -147,7 +167,7 @@ export default function DashboardLayout() {
         {isAdmin ? (
           <AdminDashboard viewMode={viewMode} />
         ) : (
-          <Outlet />
+          <OwnerDashboard viewMode={viewMode} />
         )}
       </main>
     </div>

@@ -40,7 +40,7 @@ interface ProductData {
   views?: number;
 }
 
-export default function OwnerDashboard() {
+export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: string }) {
   const { user, userData, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<BusinessData | null>(null);
@@ -326,7 +326,11 @@ export default function OwnerDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 px-4 md:px-0 font-sans">
-      {/* Business Header Section */}
+      
+      {/* 🏠 SECCIÓN PRINCIPAL: GESTIÓN DE TIENDA */}
+      {viewMode === 'owner' && (
+        <>
+          {/* Business Header Section */}
       <div className="bg-white rounded-[2rem] shadow-sm border border-neutral-100 overflow-hidden">
         <div className="h-40 bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-800 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_50%,_white,_transparent)]"></div>
@@ -459,36 +463,124 @@ export default function OwnerDashboard() {
            </div>
         </div>
       )}
+    </>
+  )}
 
-        {/* Analytics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-          <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-neutral-100">
-            <h3 className="text-sm font-black text-neutral-900 uppercase tracking-widest mb-6">Ventas Estimadas (por precio)</h3>
-            <div className="h-48 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={products.filter(p => p.isAvailable).slice(0, 5)}>
+  {/* 📈 SECCIÓN DE ESTADÍSTICAS DEL NEGOCIO */}
+  {viewMode === 'analytics' && (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-black text-blue-950 uppercase tracking-tighter">Rendimiento de {business.name}</h2>
+        <p className="text-sm text-neutral-500 font-medium">Analiza el impacto de tus productos y las visitas de tus clientes.</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-neutral-100">
+          <h3 className="text-sm font-black text-neutral-900 uppercase tracking-widest mb-6">Comparativa de Precios</h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={products.filter(p => p.isAvailable).slice(0, 5)}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="name" hide />
+                <Tooltip cursor={{fill: '#f8fafc'}} />
+                <Bar dataKey="price" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] text-center text-neutral-400 font-bold uppercase mt-4">Top 5 Productos Activos</p>
+        </div>
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-neutral-100">
+          <h3 className="text-sm font-black text-neutral-900 uppercase tracking-widest mb-6">Popularidad (Vistas)</h3>
+          <div className="h-64 w-full">
+             <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={products.filter(p => p.isAvailable).sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5)}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                   <XAxis dataKey="name" hide />
                   <Tooltip cursor={{fill: '#f8fafc'}} />
-                  <Bar dataKey="price" fill="#10b981" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="views" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
           </div>
-          <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-neutral-100">
-            <h3 className="text-sm font-black text-neutral-900 uppercase tracking-widest mb-6">Productos más vistos</h3>
-            <div className="h-48 w-full">
-               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={products.filter(p => p.isAvailable).sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5)}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                    <XAxis dataKey="name" hide />
-                    <Tooltip cursor={{fill: '#f8fafc'}} />
-                    <Bar dataKey="views" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-            </div>
-          </div>
+          <p className="text-[10px] text-center text-neutral-400 font-bold uppercase mt-4">Productos con más Interacción</p>
         </div>
+      </div>
+
+      <div className="bg-blue-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+         <div className="relative z-10">
+           <h3 className="text-lg font-black uppercase tracking-tight mb-2">Tip para vender más</h3>
+           <p className="text-blue-100 text-sm max-w-xl">
+             Los negocios que actualizan sus fotos al menos una vez al mes tienen un 40% más de clics en el directorio. ¡Mantén tu menú fresco!
+           </p>
+         </div>
+         <Store className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10 rotate-12" />
+      </div>
+    </div>
+  )}
+
+  {/* 💬 SECCIÓN DE SOPORTE PARA DUEÑOS */}
+  {viewMode === 'support' && (
+    <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm p-8 md:p-16 text-center space-y-6">
+       <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Phone className="w-10 h-10 text-emerald-600" />
+       </div>
+       <h2 className="text-3xl font-black text-blue-950 uppercase tracking-tighter">¿Problemas con tu tienda?</h2>
+       <p className="text-neutral-500 max-w-lg mx-auto font-medium">
+         Si tienes problemas para subir fotos, editar precios o si tu negocio no aparece como verificado, escríbenos directamente.
+       </p>
+       <div className="flex flex-col items-center gap-4 pt-6">
+         <a href="https://wa.me/5215620950668" target="_blank" rel="noopener noreferrer" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-200">
+           Chat Directo con Soporte
+         </a>
+         <p className="text-sm font-bold text-neutral-400">Atención de Lunes a Viernes de 9am a 6pm</p>
+       </div>
+    </div>
+  )}
+
+  {/* ⚙️ SECCIÓN DE CONFIGURACIÓN DEL DUEÑO */}
+  {viewMode === 'settings' && (
+    <div className="bg-white border border-neutral-100 rounded-[3rem] shadow-sm p-8 md:p-12">
+       <h2 className="text-2xl font-black text-blue-950 uppercase tracking-tighter mb-8 border-b border-neutral-100 pb-6">Ajustes de Mi Membresía</h2>
+       
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+         <div className="space-y-4">
+            <div className={cn("p-6 rounded-3xl", isVerified ? "bg-emerald-50" : "bg-amber-50")}>
+              <h3 className={cn("font-black uppercase text-sm mb-2", isVerified ? "text-emerald-900" : "text-amber-900")}>Estado de Cuenta</h3>
+              <p className="text-xs font-bold mb-4 opacity-70">
+                {isVerified ? "Tu suscripción está ACTIVA y al corriente." : "Tu suscripción está PENDIENTE de pago o verificación."}
+              </p>
+              <div className="bg-white rounded-xl p-3 text-xs font-black text-center border border-neutral-100">
+                PRÓXIMO PAGO: <span className="text-blue-600">PENDIENTE</span>
+              </div>
+            </div>
+         </div>
+         
+         <div className="space-y-4">
+            <div className="bg-neutral-50 p-6 rounded-3xl border border-neutral-100">
+              <h3 className="font-black text-neutral-900 uppercase text-sm mb-2">Eliminar mi Negocio</h3>
+              <p className="text-xs text-neutral-500 mb-4">Si decides cerrar tu tienda definitivamente, puedes borrar todos tus datos aquí.</p>
+              <button 
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-3 border-2 border-red-100 text-red-500 hover:bg-red-50 rounded-xl text-xs font-black uppercase transition-all"
+              >
+                Cerrar Tienda Definitivamente
+              </button>
+            </div>
+         </div>
+       </div>
+       
+       <div className="mt-8 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex items-center gap-4">
+          <Settings className="w-8 h-8 text-blue-600" />
+          <p className="text-xs font-bold text-blue-900 leading-relaxed">
+            Próximamente podrás cambiar tu contraseña y vincular más métodos de contacto desde aquí.
+          </p>
+       </div>
+    </div>
+  )}
+
+  {/* Contenido original de gestión de productos solo visible en modo 'owner' */}
+  {viewMode === 'owner' && (
+    <>
+      {/* Products Section */}
 
       {/* Business Edit Modal */}
       <AnimatePresence>
@@ -767,7 +859,7 @@ export default function OwnerDashboard() {
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

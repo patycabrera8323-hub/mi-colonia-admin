@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, onSnapshot, query, where, updateDoc, increment } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from './lib/firebase';
-import { Store, User, Lock, Mail, Phone, Info, Tag, Eye, EyeOff, LayoutDashboard, MapPin, Clock, AlertCircle } from 'lucide-react';
+import { Store, User, Lock, Mail, Phone, Info, Tag, Eye, EyeOff, LayoutDashboard, MapPin, Clock, AlertCircle, CreditCard } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './lib/utils';
@@ -76,6 +76,7 @@ export default function Landing() {
   const [businessAddress, setBusinessAddress] = useState('');
   const [deliveryArea, setDeliveryArea] = useState('');
   const [schedule, setSchedule] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Efectivo');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +119,7 @@ export default function Landing() {
             phone,
             address: businessAddress || 'Dirección no especificada',
             deliveryArea: deliveryArea || 'No especificada',
+            paymentMethod: paymentMethod || 'Efectivo',
             schedule: schedule || 'Horario no especificado',
             createdAt: now,
           });
@@ -223,7 +225,7 @@ export default function Landing() {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-black text-lg text-neutral-900 tracking-tight leading-tight uppercase">{p.name}</h3>
                     <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg font-black text-sm">
-                      ${p.price.toFixed(2)}
+                      ${(p.price || 0).toFixed(2)}
                     </span>
                   </div>
                   <p className="text-neutral-500 text-sm leading-relaxed mb-6 flex-1">{p.description}</p>
@@ -422,6 +424,16 @@ export default function Landing() {
                   <input required type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)}
                     className="pl-10 w-full rounded-lg border-neutral-300 border p-2.5 focus:ring-2 focus:ring-green-700 focus:border-green-700 outline-none transition-all"
                     placeholder="Lun-Vie 9:00 - 18:00, Sab 10:00 - 14:00" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Método de Pago (Cómo le pagarán los clientes)</label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <input required type="text" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="pl-10 w-full rounded-lg border-neutral-300 border p-2.5 focus:ring-2 focus:ring-green-700 focus:border-green-700 outline-none transition-all"
+                    placeholder="Ej: Efectivo, Tarjeta, Transferencia" />
                 </div>
               </div>
             </div>

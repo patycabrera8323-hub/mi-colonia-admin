@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 
-export function ScheduleInputs({ initialValue, onChange }: { initialValue: string, onChange?: (val: string) => void }) {
+export function ScheduleInputs({ initialValue, onChange }: { initialValue?: string, onChange?: (val: string) => void }) {
   const [open, setOpen] = useState(() => {
+    if (!initialValue) return "09:00";
     const match = initialValue.match(/(\d{2}:\d{2}) (AM|PM) - (\d{2}:\d{2}) (AM|PM)/);
     if (!match) return "09:00";
     return convertTo24h(match[1], match[2]);
   });
   const [close, setClose] = useState(() => {
+    if (!initialValue) return "18:00";
     const match = initialValue.match(/(\d{2}:\d{2}) (AM|PM) - (\d{2}:\d{2}) (AM|PM)/);
     if (!match) return "18:00";
     return convertTo24h(match[3], match[4]);

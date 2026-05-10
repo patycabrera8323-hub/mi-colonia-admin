@@ -43,8 +43,9 @@ interface ProductData {
 export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: string }) {
   const { user, userData, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [business, setBusiness] = useState<BusinessData | null>(null);
+   const [business, setBusiness] = useState<BusinessData | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   // Product Form State
   const [showForm, setShowForm] = useState(false);
@@ -127,7 +128,11 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
       if (docSnap.exists()) {
         setBusiness(docSnap.data() as BusinessData);
       }
-    }, (error) => handleFirestoreError(error, OperationType.GET, `businesses/${user.uid}`));
+      setIsLoaded(true);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `businesses/${user.uid}`);
+      setIsLoaded(true);
+    });
 
     // Subscribe to Products
     const pRef = collection(db, 'businesses', user.uid, 'products');
@@ -165,7 +170,7 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
   };
 
   const currentUrl = window.location.origin;
-  const businessUrl = `${currentUrl}/?b=${user.uid}`;
+  const businessUrl = user ? `${currentUrl}/?b=${user.uid}` : '';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(businessUrl);
@@ -322,7 +327,23 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
     }
   };
 
-  if (!business) return <div>Cargando negocio...</div>;
+  if (!isLoaded) return <div className="h-screen flex items-center justify-center bg-neutral-50 font-sans text-neutral-400">Cargando datos...</div>;
+
+  if (!business) {
+    return (
+      <div className="max-w-xl mx-auto mt-20 p-8 bg-white rounded-[3rem] border border-neutral-100 shadow-xl text-center">
+        <Store className="w-20 h-20 text-neutral-200 mx-auto mb-6" />
+        <h2 className="text-2xl font-black text-neutral-900 uppercase tracking-tighter mb-4">Configuración Incompleta</h2>
+        <p className="text-neutral-500 mb-8 font-medium">No hemos encontrado un perfil para tu negocio. Esto puede ocurrir si el registro no se completó correctamente.</p>
+        <button 
+          onClick={() => navigate('/')}
+          className="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg hover:bg-black transition-all"
+        >
+          Volver al Registro
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 px-4 md:px-0 font-sans">
@@ -360,30 +381,30 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
             <div className="flex-1 space-y-4 w-full pt-2 md:pt-6 text-center md:text-left">
               <div className="space-y-1">
                 <div className="flex flex-col md:flex-row items-center md:items-baseline gap-2 md:gap-3">
-                  <h1 className="text-3xl md:text-4xl font-black text-neutral-900 tracking-tight leading-tight uppercase">{business.name}</h1>
+                  <h1 className="text-3xl md:text-4xl font-black text-neutral-900 tracking-tight leading-tight uppercase">{business?.name || 'Nombre no especificado'}</h1>
                   <span className="bg-blue-50 px-3 py-1 rounded-lg text-[9px] md:text-[10px] font-black text-blue-700 uppercase tracking-widest border border-blue-100">
-                    {business.category}
+                    {business?.category || 'Sin Categoría'}
                   </span>
                 </div>
-                <p className="text-neutral-500 text-base md:text-lg font-medium leading-tight max-w-2xl">{business.description}</p>
+                <p className="text-neutral-500 text-base md:text-lg font-medium leading-tight max-w-2xl">{business?.description || 'Sin descripción'}</p>
               </div>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 pt-4 border-t border-neutral-50">
                 <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-neutral-400">
                   <MapPin className="w-4 h-4 text-emerald-500" /> 
-                  <span className="text-neutral-600 truncate max-w-[200px] md:max-w-none">{business.address}</span>
+                  <span className="text-neutral-600 truncate max-w-[200px] md:max-w-none">{business?.address || 'Sin dirección'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-neutral-400">
                   <Phone className="w-4 h-4 text-emerald-500" />
-                  <span className="text-neutral-600">{business.phone}</span>
+                  <span className="text-neutral-600">{business?.phone || 'Sin teléfono'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-neutral-400">
                   <MapPin className="w-4 h-4 text-emerald-500" />
-                  <span className="text-neutral-600">Entrega: {business.deliveryArea || 'No especificada'}</span>
+                  <span className="text-neutral-600">Entrega: {business?.deliveryArea || 'No especificada'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs md:text-sm font-bold text-neutral-400">
                   <Clock className="w-4 h-4 text-emerald-500" />
-                  <span className="text-neutral-600">{business.schedule}</span>
+                  <span className="text-neutral-600">{business?.schedule || 'Sin horario'}</span>
                 </div>
               </div>
             </div>
@@ -811,8 +832,8 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
                     <div className="space-y-1.5 overflow-hidden">
                       <div className="flex flex-wrap items-center gap-3">
                         <h4 className="font-black text-xl text-neutral-900 transition-colors group-hover:text-blue-900 tracking-tight">{p.name}</h4>
-                        <span className="bg-emerald-500 text-white px-3 py-1 rounded-xl text-xs font-black tracking-tight shadow-sm">
-                          ${parseFloat(String(p.price)).toFixed(2)}
+                        <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg font-black text-sm">
+                          ${(p.price || 0).toFixed(2)}
                         </span>
                       </div>
                       <p className="text-sm text-neutral-500 font-medium leading-relaxed max-w-xl line-clamp-2">{p.description}</p>
@@ -855,11 +876,13 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
                     </div>
                   </div>
                 </div>
-              ))}
+               ))}
             </div>
           )}
         </div>
-      )}
+      </div>
+    </>
+  )}
     </div>
   );
 }

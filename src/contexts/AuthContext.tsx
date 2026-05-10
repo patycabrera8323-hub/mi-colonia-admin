@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Super Admin permanente — solo este correo tiene acceso total
-  const isAdmin = user?.email === 'jicr109@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === 'jicr109@gmail.com';
 
   return (
     <AuthContext.Provider value={{ user, userData, isAdmin, loading }}>

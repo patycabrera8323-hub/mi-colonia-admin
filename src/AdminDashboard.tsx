@@ -46,6 +46,7 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
   const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'verified'>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [commercialStatus, setCommercialStatus] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -147,14 +148,18 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
     }
   };
 
-  const deleteRecord = async (userId: string) => {
-    if (!confirm('¿Seguro que deseas eliminar este usuario y su negocio? Esta acción no se puede deshacer.')) return;
+  const deleteRecord = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'businesses', userId));
-      await deleteDoc(doc(db, 'users', userId));
+      await deleteDoc(doc(db, 'businesses', id));
+      await deleteDoc(doc(db, 'users', id));
+      setDeletingId(null);
       setSelectedId(null);
+      alert('Registro eliminado correctamente.');
     } catch (e) {
-      handleFirestoreError(e, OperationType.DELETE, `users/${userId}`);
+      console.error('Error en deleteRecord:', e);
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      alert('Error al eliminar: ' + errorMsg);
+      handleFirestoreError(e, OperationType.DELETE, `users/${id}`);
     }
   };
 
@@ -409,7 +414,7 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
                         Gestionar
                       </button>
                       <button 
-                        onClick={() => deleteRecord(record.user.id)}
+                        onClick={() => setDeletingId(record.user.id)}
                         className="p-3 text-neutral-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100"
                         title="Eliminar Expediente"
                       >
@@ -643,38 +648,38 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
                              )}
                              <div className="flex justify-between items-center gap-4">
                                 <div className="bg-blue-900 px-6 py-2 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.3em] shadow-lg">
-                                   {selectedRecord.business.category}
+                                   {selectedRecord.business?.category}
                                 </div>
                                 <button 
                                   type="button"
-                                  onClick={() => toggleBusinessOpen(selectedRecord.business!)}
+                                  onClick={() => selectedRecord.business && toggleBusinessOpen(selectedRecord.business)}
                                   className={cn(
                                     "px-6 py-2 rounded-2xl transition-all border-2 active:scale-95 font-black text-[10px] uppercase tracking-widest flex items-center gap-3",
-                                    selectedRecord.business.isOpen 
+                                    selectedRecord.business?.isOpen 
                                       ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
                                       : "bg-red-50 text-red-600 border-red-100"
                                   )}
                                 >
-                                  {selectedRecord.business.isOpen ? 'Negocio Abierto' : 'Negocio Cerrado'}
-                                  <div className={cn("w-2 h-2 rounded-full", selectedRecord.business.isOpen ? "bg-emerald-500 animate-pulse" : "bg-red-500")} />
+                                  {selectedRecord.business?.isOpen ? 'Negocio Abierto' : 'Negocio Cerrado'}
+                                  <div className={cn("w-2 h-2 rounded-full", selectedRecord.business?.isOpen ? "bg-emerald-500 animate-pulse" : "bg-red-500")} />
                                 </button>
                              </div>
 
-                             <Field label="Nombre del Establecimiento" name="name" defaultValue={selectedRecord.business.name} />
+                             <Field label="Nombre del Establecimiento" name="name" defaultValue={selectedRecord.business?.name} />
                              <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] ml-2">Misión y Visión Comercial</label>
-                                <textarea name="description" defaultValue={selectedRecord.business.description} className="w-full bg-neutral-50 rounded-[2rem] border border-neutral-100 p-6 text-xs font-semibold text-neutral-600 outline-none focus:ring-4 focus:ring-blue-100 transition-all min-h-[120px] shadow-inner" />
+                                <textarea name="description" defaultValue={selectedRecord.business?.description} className="w-full bg-neutral-50 rounded-[2rem] border border-neutral-100 p-6 text-xs font-semibold text-neutral-600 outline-none focus:ring-4 focus:ring-blue-100 transition-all min-h-[120px] shadow-inner" />
                              </div>
                              
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Field label="Rubro Comercial" name="category" defaultValue={selectedRecord.business.category} isSelect options={['COMIDA', 'RETAIL', 'SALUD', 'SERVICIOS']} />
-                                <Field label="Zona de Entrega" name="deliveryArea" defaultValue={selectedRecord.business.deliveryArea} />
-                                <Field label="Envías a partir de (Opcional)" name="minDeliveryAmount" defaultValue={selectedRecord.business.minDeliveryAmount || ''} />
-                                <Field label="Forma de Pago" name="paymentMethod" defaultValue={selectedRecord.business.paymentMethod} />
-                                <Field label="Dirección Física" name="address" defaultValue={selectedRecord.business.address} />
+                                <Field label="Rubro Comercial" name="category" defaultValue={selectedRecord.business?.category} isSelect options={['COMIDA', 'RETAIL', 'SALUD', 'SERVICIOS']} />
+                                <Field label="Zona de Entrega" name="deliveryArea" defaultValue={selectedRecord.business?.deliveryArea} />
+                                <Field label="Envías a partir de (Opcional)" name="minDeliveryAmount" defaultValue={selectedRecord.business?.minDeliveryAmount || ''} />
+                                <Field label="Forma de Pago" name="paymentMethod" defaultValue={selectedRecord.business?.paymentMethod} />
+                                <Field label="Dirección Física" name="address" defaultValue={selectedRecord.business?.address} />
                              </div>
                              
-                             <ScheduleInputs initialValue={selectedRecord.business.schedule} />
+                             <ScheduleInputs initialValue={selectedRecord.business?.schedule} />
 
                              <div className="pt-8 border-t border-neutral-50 flex justify-end">
                                 <button type="submit" className="w-full md:w-auto bg-emerald-500 text-white px-10 py-4 rounded-3xl text-[11px] font-black hover:bg-emerald-600 transition-all shadow-2xl shadow-emerald-100 uppercase tracking-[0.2em] active:scale-95">
@@ -704,9 +709,54 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
           </div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deletingId && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-neutral-950/60 backdrop-blur-md"
+                onClick={() => setDeletingId(null)}
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative bg-white w-full max-w-md rounded-[3rem] p-8 shadow-2xl border border-neutral-100 text-center space-y-6"
+              >
+                <div className="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <Trash2 className="w-10 h-10" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-neutral-900 tracking-tight uppercase">¿ELIMINAR TODO?</h3>
+                  <p className="text-neutral-500 font-medium leading-relaxed">
+                    Esta acción borrará permanentemente al usuario y toda la configuración de su negocio. No se puede revertir.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={() => deleteRecord(deletingId)}
+                    className="w-full py-4 bg-red-600 hover:bg-black text-white font-black rounded-2xl transition-all shadow-xl shadow-red-100 uppercase tracking-widest text-xs"
+                  >
+                    Confirmar Eliminación
+                  </button>
+                  <button 
+                    onClick={() => setDeletingId(null)}
+                    className="w-full py-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-500 font-bold rounded-2xl transition-all uppercase tracking-widest text-xs"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
 function Header({ label, icon }: { label: string, icon: React.ReactNode }) {
   return (

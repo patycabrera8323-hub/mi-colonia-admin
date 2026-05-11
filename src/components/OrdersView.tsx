@@ -33,6 +33,7 @@ interface OrderData {
   paymentMethod: string;
   createdAt: any;
   driverId: string | null;
+  notes?: string;
 }
 
 const statusConfig = {
@@ -224,9 +225,21 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
 
                   {/* Address */}
                   {order.deliveryLocation?.address && (
-                    <div className="mb-6 flex items-start gap-2 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+                    <div className="mb-4 flex items-start gap-2 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
                       <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                       <p className="text-xs font-medium text-blue-900 leading-relaxed">{order.deliveryLocation.address}</p>
+                    </div>
+                  )}
+                  
+                  {/* Order Notes / Comments */}
+                  {order.notes && (
+                    <div className="mb-6 bg-amber-50 border border-amber-100 p-4 rounded-2xl">
+                      <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3" /> Comentarios del Cliente
+                      </p>
+                      <p className="text-sm font-medium text-amber-900 leading-relaxed italic">
+                        "{order.notes}"
+                      </p>
                     </div>
                   )}
 

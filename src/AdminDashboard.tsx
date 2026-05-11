@@ -149,6 +149,14 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
     }
   };
 
+  const toggleSystemOrders = async (b: BusinessData) => {
+    try {
+      await updateDoc(doc(db, 'businesses', b.id), { acceptsSystemOrders: !b.acceptsSystemOrders });
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `businesses/${b.id}`);
+    }
+  };
+
   const deleteRecord = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'businesses', id));
@@ -386,6 +394,15 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
                            <span className={cn("text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md", record.business.isOpen ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                              {record.business.isOpen ? 'Abierto' : 'Cerrado'}
                            </span>
+                           <button 
+                             onClick={() => toggleSystemOrders(record.business!)}
+                             className={cn(
+                               "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md transition-all active:scale-95",
+                               record.business.acceptsSystemOrders ? "bg-blue-600 text-white shadow-sm" : "bg-blue-50 text-blue-400 border border-blue-100"
+                             )}
+                           >
+                             {record.business.acceptsSystemOrders ? '💻 Sistema ON' : '💬 Solo WhatsApp'}
+                           </button>
                         </div>
                       </div>
                     ) : (

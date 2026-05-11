@@ -69,7 +69,6 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
   const [bSched, setBSched] = useState('');
   const [bPayment, setBPayment] = useState('');
   const [bLogo, setBLogo] = useState('');
-  const [bAcceptsOrders, setBAcceptsOrders] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'product') => {
@@ -169,7 +168,6 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
     setBPayment(business.paymentMethod || '');
     setBSched(business.schedule);
     setBLogo(business.logoUrl || '');
-    setBAcceptsOrders(business.acceptsSystemOrders || false);
     setShowBusinessForm(true);
   };
 
@@ -203,7 +201,6 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
         schedule: bSched,
       };
       if (bLogo) updateData.logoUrl = bLogo;
-      updateData.acceptsSystemOrders = bAcceptsOrders;
       await updateDoc(doc(db, 'businesses', user.uid), updateData);
       setShowBusinessForm(false);
     } catch (error) {
@@ -701,27 +698,6 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
                   <div className="space-y-1.5 md:col-span-2 mt-4">
                     <label className="text-xs font-black uppercase text-neutral-500">Horario de Atención</label>
                     <ScheduleInputs initialValue={bSched} onChange={setBSched} />
-                  </div>
-
-                  {/* Toggle for System Orders */}
-                  <div className="md:col-span-2 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex items-center justify-between gap-6 mt-6 shadow-inner">
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-black text-blue-950 uppercase tracking-tight">Activar Pedidos por Sistema</h4>
-                      <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                        Si lo activas, tus clientes podrán comprar directamente desde la app. Si lo apagas, solo verán el botón de WhatsApp.
-                      </p>
-                    </div>
-                    <button 
-                      type="button"
-                      onClick={() => setBAcceptsOrders(!bAcceptsOrders)}
-                      className={cn("relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-all focus:outline-none shadow-md",
-                        bAcceptsOrders ? 'bg-emerald-500' : 'bg-neutral-300'
-                      )}
-                    >
-                      <span className={cn("inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-sm", 
-                        bAcceptsOrders ? 'translate-x-7' : 'translate-x-1'
-                      )} />
-                    </button>
                   </div>
                 </div>
 

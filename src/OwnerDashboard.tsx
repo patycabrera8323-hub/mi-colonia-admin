@@ -684,7 +684,7 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-black uppercase text-neutral-500">Forma de Pago</label>
-                    <input required value={bPayment} onChange={e=>setBPayment(e.target.value)} className="w-full p-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-600 outline-none transition-all font-medium" placeholder="Ej: Efectivo, Tarjeta, Transferencia" />
+                    <input required value={bPayment} onChange={e=>setBPayment(e.target.value)} className="w-full p-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-600 outline-none transition-all font-medium" placeholder="Ej: Efectivo, Tarjeta o alguna combinación" />
                   </div>
 
                   <div className="space-y-1.5 pt-4 border-t border-neutral-100 md:col-span-2">

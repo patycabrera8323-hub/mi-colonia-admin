@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Clock } from 'lucide-react';
 
 export function ScheduleInputs({ initialValue, onChange }: { initialValue?: string, onChange?: (val: string) => void }) {
   const [open, setOpen] = useState(() => {
@@ -26,13 +27,29 @@ export function ScheduleInputs({ initialValue, onChange }: { initialValue?: stri
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-1.5">
-        <label className="text-xs font-black uppercase text-neutral-500">Hora Apertura</label>
-        <input type="time" value={open} onChange={handleOpenChange} className="w-full p-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-600 outline-none transition-all font-medium" />
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] ml-1">Hora Apertura</label>
+        <div className="relative group">
+          <input 
+            type="time" 
+            value={open} 
+            onChange={handleOpenChange} 
+            className="w-full p-4 bg-neutral-50 border border-neutral-200 rounded-[1.5rem] font-black text-neutral-800 outline-none focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-200 transition-all cursor-pointer appearance-none" 
+          />
+          <Clock className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none group-focus-within:text-blue-500 transition-colors" />
+        </div>
       </div>
-      <div className="space-y-1.5">
-        <label className="text-xs font-black uppercase text-neutral-500">Hora Cierre</label>
-        <input type="time" value={close} onChange={handleCloseChange} className="w-full p-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-blue-600 outline-none transition-all font-medium" />
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] ml-1">Hora Cierre</label>
+        <div className="relative group">
+          <input 
+            type="time" 
+            value={close} 
+            onChange={handleCloseChange} 
+            className="w-full p-4 bg-neutral-50 border border-neutral-200 rounded-[1.5rem] font-black text-neutral-800 outline-none focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-200 transition-all cursor-pointer appearance-none" 
+          />
+          <Clock className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none group-focus-within:text-blue-500 transition-colors" />
+        </div>
       </div>
       <input type="hidden" name="schedule" value={`${formatTime(open)} - ${formatTime(close)}`} />
     </div>

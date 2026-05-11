@@ -6,6 +6,7 @@ import { Store, User, Lock, Mail, Phone, Info, Tag, Eye, EyeOff, LayoutDashboard
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './lib/utils';
+import { ScheduleInputs } from './components/ScheduleInputs';
 
 export default function Landing() {
   const { user } = useAuth();
@@ -417,14 +418,9 @@ export default function Landing() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Horario de Atención</label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                  <input required type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)}
-                    className="pl-10 w-full rounded-lg border-neutral-300 border p-2.5 focus:ring-2 focus:ring-green-700 focus:border-green-700 outline-none transition-all"
-                    placeholder="Lun-Vie 9:00 - 18:00, Sab 10:00 - 14:00" />
-                </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-1">Horario de Atención</label>
+                <ScheduleInputs initialValue={schedule} onChange={setSchedule} />
               </div>
 
               <div>
@@ -433,7 +429,7 @@ export default function Landing() {
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input required type="text" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
                     className="pl-10 w-full rounded-lg border-neutral-300 border p-2.5 focus:ring-2 focus:ring-green-700 focus:border-green-700 outline-none transition-all"
-                    placeholder="Ej: Efectivo, Tarjeta, Transferencia" />
+                    placeholder="Ej: Efectivo, Tarjeta o alguna combinación" />
                 </div>
               </div>
             </div>

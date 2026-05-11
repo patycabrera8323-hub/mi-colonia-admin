@@ -12,6 +12,10 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+        },
         manifest: {
           name: 'Mo Colonia en un Click',
           short_name: 'Mo Colonia',

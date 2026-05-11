@@ -583,6 +583,7 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
          </div>
          
          <div className="space-y-4">
+          {isAdmin && (
             <div className="bg-neutral-50 p-6 rounded-3xl border border-neutral-100">
               <h3 className="font-black text-neutral-900 uppercase text-sm mb-2">Eliminar mi Negocio</h3>
               <p className="text-xs text-neutral-500 mb-4">Si decides cerrar tu tienda definitivamente, puedes borrar todos tus datos aquí.</p>
@@ -593,6 +594,7 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
                 Cerrar Tienda Definitivamente
               </button>
             </div>
+          )}
          </div>
        </div>
        

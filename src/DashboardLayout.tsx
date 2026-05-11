@@ -19,6 +19,7 @@ export default function DashboardLayout() {
     if (!user) return;
     setIsResending(true);
     try {
+      auth.languageCode = 'es'; // Asegurar que el correo se envíe en Español
       await sendEmailVerification(user);
       alert("Correo de verificación enviado. Revisa tu bandeja de entrada.");
     } catch (error) {

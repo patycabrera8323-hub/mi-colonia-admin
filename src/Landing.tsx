@@ -77,7 +77,7 @@ export default function Landing() {
   const [businessAddress, setBusinessAddress] = useState('');
   const [deliveryArea, setDeliveryArea] = useState('');
   const [schedule, setSchedule] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Efectivo');
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft } from 'lucide-react';
 import { auth } from './lib/firebase';
 import { signOut, sendEmailVerification } from 'firebase/auth';
 import { cn } from './lib/utils';
@@ -106,13 +106,24 @@ export default function DashboardLayout() {
              </p>
            </div>
         </div>
-        <button 
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-          className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
-        >
-          <span className="text-[10px] font-black uppercase tracking-widest">{mobileMenuOpen ? 'Cerrar' : 'Menú'}</span>
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {viewMode !== (isAdmin ? 'admin' : 'owner') && (
+            <button 
+              onClick={() => handleNavClick(isAdmin ? 'admin' : 'owner')}
+              className="flex items-center gap-1 bg-white/10 px-3 py-2 rounded-xl border border-white/10 active:scale-95 transition-all text-emerald-400"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Atrás</span>
+            </button>
+          )}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest">{mobileMenuOpen ? 'Cerrar' : 'Menú'}</span>
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* 🌑 Overlay oscuro para cuando el menú está abierto en celular */}

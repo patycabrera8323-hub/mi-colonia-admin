@@ -97,8 +97,9 @@ service cloud.firestore {
         (isOwner(userId) && (
           // El dueño siempre puede abrir/cerrar su negocio aunque no esté verificado
           (incoming().diff(existing()).affectedKeys().hasOnly(['isOpen'])) ||
-          // Para otros cambios, sí requiere estar verificado
+          // Para otros cambios, sí requiere estar verificado y NO puede tocar orderSystem
           (get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true &&
+           !incoming().diff(existing()).affectedKeys().hasAny(['orderSystem']) &&
            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'category', 'isOpen', 'phone', 'address', 'deliveryArea', 'minDeliveryAmount', 'paymentMethod', 'schedule', 'logoUrl']))
         ))
       ) && (

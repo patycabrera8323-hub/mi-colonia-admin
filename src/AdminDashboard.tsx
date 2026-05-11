@@ -151,7 +151,8 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
 
   const toggleSystemOrders = async (b: BusinessData) => {
     try {
-      await updateDoc(doc(db, 'businesses', b.id), { acceptsSystemOrders: !b.acceptsSystemOrders });
+      const newSystem = b.orderSystem === 'internal' ? 'whatsapp' : 'internal';
+      await updateDoc(doc(db, 'businesses', b.id), { orderSystem: newSystem });
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, `businesses/${b.id}`);
     }
@@ -398,10 +399,10 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
                              onClick={() => toggleSystemOrders(record.business!)}
                              className={cn(
                                "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md transition-all active:scale-95",
-                               record.business.acceptsSystemOrders ? "bg-blue-600 text-white shadow-sm" : "bg-blue-50 text-blue-400 border border-blue-100"
+                               record.business.orderSystem === 'internal' ? "bg-blue-600 text-white shadow-sm" : "bg-blue-50 text-blue-400 border border-blue-100"
                              )}
                            >
-                             {record.business.acceptsSystemOrders ? '💻 Sistema ON' : '💬 Solo WhatsApp'}
+                             {record.business.orderSystem === 'internal' ? '💻 Sistema ON' : '💬 Solo WhatsApp'}
                            </button>
                         </div>
                       </div>

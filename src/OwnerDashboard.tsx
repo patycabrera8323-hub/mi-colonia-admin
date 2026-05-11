@@ -27,7 +27,7 @@ interface BusinessData {
   paymentMethod: string;
   schedule: string;
   logoUrl?: string;
-  acceptsSystemOrders?: boolean;
+  orderSystem?: 'whatsapp' | 'internal';
   createdAt: number;
 }
 

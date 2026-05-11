@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw } from 'lucide-react';
 import { auth } from './lib/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, sendEmailVerification } from 'firebase/auth';
 import { cn } from './lib/utils';
 import AdminDashboard from './AdminDashboard';
 import OwnerDashboard from './OwnerDashboard';
@@ -13,6 +13,20 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings'>('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [isResending, setIsResending] = React.useState(false);
+
+  const resendVerification = async () => {
+    if (!user) return;
+    setIsResending(true);
+    try {
+      await sendEmailVerification(user);
+      alert("Correo de verificación enviado. Revisa tu bandeja de entrada.");
+    } catch (error) {
+      alert("Error al enviar: " + error);
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   React.useEffect(() => {
     if (!loading) {
@@ -32,6 +46,49 @@ export default function DashboardLayout() {
     setViewMode(mode);
     setMobileMenuOpen(false); // Cerrar menú en celular al hacer clic
   };
+
+  // 🛡 Pantalla de Verificación de Correo (Solo para dueños, el admin ya está verificado por sistema)
+  if (user && !user.emailVerified && !isAdmin) {
+    return (
+      <div className="h-screen bg-blue-900 flex items-center justify-center p-4 font-sans">
+        <div className="bg-white max-w-md w-full rounded-[3rem] shadow-2xl p-10 text-center space-y-8 border-t-8 border-emerald-500">
+           <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-blue-100">
+              <Mail className="w-12 h-12 text-blue-600" />
+           </div>
+           <div className="space-y-3">
+              <h1 className="text-3xl font-black text-blue-950 uppercase tracking-tighter">Verifica tu Correo</h1>
+              <p className="text-neutral-500 font-medium leading-relaxed">
+                Para proteger tu negocio, necesitamos que confirmes tu dirección: <br/>
+                <span className="text-blue-600 font-black">{user.email}</span>
+              </p>
+           </div>
+           
+           <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-amber-800 text-xs font-bold leading-relaxed">
+             Revisa tu bandeja de entrada (o carpeta de spam) y haz clic en el enlace de confirmación.
+           </div>
+
+           <div className="flex flex-col gap-3">
+             <button 
+               onClick={() => window.location.reload()} 
+               className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-xs"
+             >
+               Ya lo verifiqué, Entrar
+             </button>
+             <button 
+               onClick={resendVerification}
+               disabled={isResending}
+               className="w-full py-4 bg-white border-2 border-neutral-100 text-blue-600 font-black rounded-2xl hover:bg-blue-50 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+             >
+               {isResending ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Reenviar Correo"}
+             </button>
+             <button onClick={handleLogout} className="text-neutral-400 font-bold text-xs uppercase tracking-widest hover:text-red-500 transition-colors pt-4">
+               Cerrar Sesión
+             </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col md:flex-row font-sans relative">

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { PackageOpen, Clock, ChefHat, CheckCircle2, MapPin, ShoppingBag, Phone } from 'lucide-react';
+import { PackageOpen, Clock, ChefHat, CheckCircle2, MapPin, ShoppingBag, Phone, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 

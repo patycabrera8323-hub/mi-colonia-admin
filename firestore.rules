@@ -147,5 +147,12 @@ service cloud.firestore {
 
       allow delete: if isAdmin() || (isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true);
     }
+    match /orders/{orderId} {
+      // Permissive enough for clients to create orders, but secure for updates
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAdmin() || (isSignedIn() && resource.data.storeId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
   }
 }

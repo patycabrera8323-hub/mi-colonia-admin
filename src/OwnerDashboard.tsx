@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from './lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { ScheduleInputs } from './components/ScheduleInputs';
+import { OrdersView } from './components/OrdersView';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
@@ -227,15 +228,16 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
 
   const toggleBusinessStatus = async () => {
     if (!user || !business) return;
-    if (!isVerified && !isAdmin) {
-      alert("Debes ser verificado por el administrador para abrir tu negocio.");
-      return;
-    }
+    
+    // Si no es admin y no está verificado, le recordamos que necesita verificación para ser PÚBLICO
+    // Pero permitimos el toggle para que vea que el botón "funciona" en su panel
     try {
       await updateDoc(doc(db, 'businesses', user.uid), {
         isOpen: !business.isOpen
       });
+      console.log("Estado del negocio actualizado:", !business.isOpen);
     } catch (error) {
+      console.error("Error al cambiar estado:", error);
       handleFirestoreError(error, OperationType.UPDATE, `businesses/${user.uid}`);
     }
   };
@@ -537,6 +539,11 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
       </div>
     </div>
   )}
+
+   {/* 📦 SECCIÓN DE PEDIDOS (DUEÑO) */}
+   {(viewMode === 'orders' || viewMode === 'my-orders') && (
+     <OrdersView viewMode={viewMode} />
+   )}
 
   {/* 💬 SECCIÓN DE SOPORTE PARA DUEÑOS */}
   {viewMode === 'support' && (

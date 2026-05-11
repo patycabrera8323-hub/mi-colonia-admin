@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag } from 'lucide-react';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
 import { cn } from './lib/utils';
@@ -11,7 +11,7 @@ import OwnerDashboard from './OwnerDashboard';
 export default function DashboardLayout() {
   const { user, userData, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'analytics' | 'support' | 'settings'>('owner');
+  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings'>('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,8 +49,12 @@ export default function DashboardLayout() {
              </p>
            </div>
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+          className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl hover:bg-white/20 transition-all active:scale-95 border border-white/10"
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest">{mobileMenuOpen ? 'Cerrar' : 'Menú'}</span>
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
@@ -85,9 +89,11 @@ export default function DashboardLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+          {/* 🛠 SECCIÓN DE ADMINISTRACIÓN (Solo visible para Súper Admin) */}
           {isAdmin && (
-            <>
+            <div className="space-y-1">
+              <p className="px-3 text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] mb-2 opacity-70">Panel de Control Admin</p>
               <NavItem 
                 icon={<Users />} 
                 label="Usuarios y Negocios" 
@@ -95,8 +101,14 @@ export default function DashboardLayout() {
                 onClick={() => handleNavClick('admin')} 
               />
               <NavItem 
+                icon={<ShoppingBag />} 
+                label="PEDIDOS GLOBAL (ADMIN)" 
+                active={viewMode === 'orders'} 
+                onClick={() => handleNavClick('orders')} 
+              />
+              <NavItem 
                 icon={<PieChart />} 
-                label="Analíticas y Finanzas" 
+                label="Analíticas Globales" 
                 active={viewMode === 'analytics'} 
                 onClick={() => handleNavClick('analytics')} 
               />
@@ -112,37 +124,47 @@ export default function DashboardLayout() {
                 active={viewMode === 'settings'} 
                 onClick={() => handleNavClick('settings')} 
               />
-              <div className="my-4 h-px bg-blue-800/50 mx-2"></div>
-            </>
+            </div>
           )}
-          {!isAdmin && (
-            <>
-              <NavItem 
-                icon={<LayoutDashboard />} 
-                label="Mi Tienda" 
-                active={viewMode === 'owner'} 
-                onClick={() => handleNavClick('owner')} 
-              />
-              <NavItem 
-                icon={<PieChart />} 
-                label="Mis Estadísticas" 
-                active={viewMode === 'analytics'} 
-                onClick={() => handleNavClick('analytics')} 
-              />
-              <NavItem 
-                icon={<MessageSquare />} 
-                label="Soporte Técnico" 
-                active={viewMode === 'support'} 
-                onClick={() => handleNavClick('support')} 
-              />
-              <NavItem 
-                icon={<SettingsIcon />} 
-                label="Configuración" 
-                active={viewMode === 'settings'} 
-                onClick={() => handleNavClick('settings')} 
-              />
-            </>
-          )}
+
+          {/* 🏪 SECCIÓN DE MI NEGOCIO (Visible para todos: Dueños y Admin) */}
+          <div className="space-y-1">
+            <p className="px-3 text-[9px] font-black text-emerald-400 uppercase tracking-[0.3em] mb-2 opacity-70">Mi Negocio / Tienda</p>
+            <NavItem 
+              icon={<ShoppingBag />} 
+              label="MIS PEDIDOS" 
+              active={viewMode === 'my-orders' || viewMode === 'orders'} 
+              onClick={() => handleNavClick(isAdmin ? 'my-orders' : 'orders')} 
+              highlight={true}
+            />
+            <NavItem 
+              icon={<LayoutDashboard />} 
+              label="Mi Tienda" 
+              active={viewMode === 'owner'} 
+              onClick={() => handleNavClick('owner')} 
+            />
+            <NavItem 
+              icon={<PieChart />} 
+              label="Estadísticas" 
+              active={viewMode === 'analytics'} 
+              onClick={() => handleNavClick('analytics')} 
+            />
+            <NavItem 
+              icon={<MessageSquare />} 
+              label="Soporte Técnico" 
+              active={viewMode === 'support'} 
+              onClick={() => handleNavClick('support')} 
+            />
+            <NavItem 
+              icon={<SettingsIcon />} 
+              label="Configuración" 
+              active={viewMode === 'settings'} 
+              onClick={() => handleNavClick('settings')} 
+            />
+          </div>
+
+          <div className="my-2 h-px bg-blue-800/20 mx-3"></div>
+
           <NavItem 
             icon={<Store />} 
             label="Ver Directorio Público" 
@@ -175,15 +197,31 @@ export default function DashboardLayout() {
   );
 }
 
-function NavItem({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active: boolean, onClick?: () => void }) {
+function NavItem({ icon, label, active, onClick, highlight }: { icon: React.ReactNode, label: string, active: boolean, onClick?: () => void, highlight?: boolean }) {
   return (
     <div 
       onClick={onClick}
-      className={cn("flex items-center gap-3 p-3 rounded-lg text-sm font-medium cursor-pointer transition-colors", 
-      active ? "bg-white/10 text-white" : "text-blue-200 hover:bg-white/5 hover:text-white"
-    )}>
-      {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5" })}
-      {label}
+      className={cn(
+        "flex items-center gap-3 p-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 group relative overflow-hidden", 
+        active 
+          ? "bg-white text-blue-900 shadow-lg shadow-blue-950/20" 
+          : cn(
+              "text-blue-200 hover:bg-white/10 hover:text-white",
+              highlight && "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse"
+            )
+      )}>
+      <div className={cn(
+        "p-1.5 rounded-lg transition-colors",
+        active ? "bg-blue-100 text-blue-900" : "bg-blue-800/50 text-blue-300 group-hover:text-white"
+      )}>
+        {React.cloneElement(icon as React.ReactElement, { className: "w-4 h-4" })}
+      </div>
+      <span className={cn(active ? "font-black uppercase tracking-tight" : "font-medium")}>
+        {label}
+      </span>
+      {highlight && !active && (
+        <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-500/50" />
+      )}
     </div>
   );
 }

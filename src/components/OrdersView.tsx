@@ -51,8 +51,8 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [drivers, setDrivers] = useState<Record<string, string>>({}); // {id: name}
   const [loading, setLoading] = useState(true);
-
   const [showHistory, setShowHistory] = useState(false);
+  const prevOrdersRef = React.useRef<OrderData[]>([]);
 
   useEffect(() => {
     // Fetch driver names map
@@ -87,10 +87,10 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "modified") {
           const newData = change.doc.data() as OrderData;
-          const oldData = orders.find(o => o.id === change.doc.id);
+          const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
           
           // Trigger notification if status changed to accepted
-          if (newData.status === 'accepted' && oldData?.status !== 'accepted') {
+          if (newData.status === 'accepted' && (!oldData || oldData.status !== 'accepted')) {
             sendNotification(`¡Pedido Aceptado!`, `El repartidor ha tomado el pedido #${change.doc.id.slice(0,6)}`);
           }
         }
@@ -105,6 +105,8 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
         const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
         return timeB - timeA;
       });
+
+      prevOrdersRef.current = ordersData;
       setOrders(ordersData);
       setLoading(false);
     }, (error) => {
@@ -113,7 +115,7 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
     });
 
     return () => unsubscribe();
-  }, [user, isAdmin, orders]); // Added orders to deps to compare old status
+  }, [user, isAdmin]); // Removed orders from deps
 
   const sendNotification = (title: string, body: string) => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
@@ -203,6 +205,13 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
             className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
           >
             <Clock className="w-3.5 h-3.5" /> Activar Avisos
+          </button>
+          
+          <button 
+            onClick={() => sendNotification("Prueba de Sonido", "Si escuchas esto, las notificaciones están activas.")}
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-50 text-neutral-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-neutral-100 hover:bg-neutral-100 transition-all"
+          >
+            <Zap className="w-3.5 h-3.5" /> Probar
           </button>
           {!isAdmin && (
             <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm">

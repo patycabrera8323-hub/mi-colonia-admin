@@ -256,23 +256,19 @@ export default function Landing() {
           )}
         </main>
 
-        <div className="max-w-4xl mx-auto px-12 mb-8">
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-        </div>
-
-        <footer className="max-w-4xl mx-auto px-6 py-12 text-center">
-          <div className="flex flex-col items-center gap-2 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
-             <img src="/searmo-logo.png" alt="Searmo" className="h-6 w-auto object-contain mb-1" />
-             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-neutral-400">Powered by Searmo</p>
-             <p className="text-[6px] font-bold text-neutral-300 mt-2">NEGOCIOYA &copy; 2026</p>
-          </div>
-        </footer>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4 selection:bg-pink-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-4 selection:bg-pink-500 selection:text-white font-sans">
+      
+      {/* Top Branding */}
+      <div className="mb-6 flex flex-col items-center gap-1.5 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-1000 group">
+         <img src="/searmo-logo.png" alt="Searmo" className="h-5 w-auto object-contain mb-0.5" />
+         <p className="text-[7px] font-black uppercase tracking-[0.5em] text-neutral-400">Powered by Searmo</p>
+      </div>
+
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-neutral-100">
         
         {/* Header */}

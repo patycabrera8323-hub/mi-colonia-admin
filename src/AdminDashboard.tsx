@@ -475,7 +475,7 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
              <a href="https://wa.me/5215620950668" target="_blank" rel="noopener noreferrer" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-200">
                Enviar WhatsApp a Soporte
              </a>
-             <p className="text-sm font-bold text-neutral-400">Email: seramoco@gmail.com</p>
+             <p className="text-sm font-bold text-neutral-400">Email: searmoco@gmail.com</p>
            </div>
         </div>
       )}

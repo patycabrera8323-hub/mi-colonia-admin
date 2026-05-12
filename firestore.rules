@@ -153,10 +153,30 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.payment_verified == true);
     }
     match /orders/{orderId} {
-      // Permissive enough for clients to create orders, but secure for updates
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAdmin() || (isSignedIn() && resource.data.storeId == request.auth.uid);
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || 
+        (isSignedIn() && resource.data.storeId == request.auth.uid) ||
+        (isSignedIn() && (
+          // Driver accepting a pending order
+          (resource.data.status == 'pending' && 
+           request.resource.data.status == 'accepted' && 
+           request.resource.data.driverId == request.auth.uid && 
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'driverId', 'acceptedAt'])) ||
+          
+          // Driver updating their assigned order
+          (resource.data.driverId == request.auth.uid && 
+           request.resource.data.status in ['accepted', 'picked_up', 'on_way', 'delivered', 'cancelled'] &&
+           request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'deliveredAt', 'updatedAt']))
+        ));
+      allow delete: if isAdmin();
+    }
+
+    match /drivers/{driverId} {
+      allow read: if isAdmin() || isOwner(driverId);
+      allow create: if isOwner(driverId);
+      allow update: if isAdmin() || 
+        (isOwner(driverId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'email', 'createdAt']));
       allow delete: if isAdmin();
     }
   }

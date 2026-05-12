@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { PackageOpen, Clock, ChefHat, CheckCircle2, MapPin, ShoppingBag, Phone, MessageSquare } from 'lucide-react';
+import { PackageOpen, Clock, ChefHat, CheckCircle2, MapPin, ShoppingBag, Phone, MessageSquare, Truck, Bike } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -39,7 +39,10 @@ interface OrderData {
 const statusConfig = {
   pending: { label: 'Orden Recibida', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   preparing: { label: 'Preparando Orden', icon: ChefHat, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-  delivered: { label: 'Entregada a Repartidor', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  accepted: { label: 'Repartidor Asignado', icon: Truck, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
+  picked_up: { label: 'Pedido Recolectado', icon: ShoppingBag, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+  on_way: { label: 'Repartidor en Camino', icon: Bike, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+  delivered: { label: 'Entregado a Cliente', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   completed: { label: 'Compra Finalizada', icon: ShoppingBag, color: 'text-neutral-500', bg: 'bg-neutral-100', border: 'border-neutral-200' },
 };
 
@@ -53,9 +56,12 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
   useEffect(() => {
     if (!user) return;
 
+    // Request notification permission
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+
     let q;
-    // Si es admin y NO estamos en modo 'my-orders', ve todo.
-    // Si no es admin, o si es admin pero eligió 'my-orders', ve solo lo suyo.
     if (isAdmin && viewMode !== 'my-orders') {
       q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     } else {
@@ -64,10 +70,23 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ordersData: OrderData[] = [];
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+          const newData = change.doc.data() as OrderData;
+          const oldData = orders.find(o => o.id === change.doc.id);
+          
+          // Trigger notification if status changed to accepted
+          if (newData.status === 'accepted' && oldData?.status !== 'accepted') {
+            sendNotification(`¡Pedido Aceptado!`, `El repartidor ha tomado el pedido #${change.doc.id.slice(0,6)}`);
+          }
+        }
+      });
+
       snapshot.forEach((doc) => {
         ordersData.push({ id: doc.id, ...doc.data() } as OrderData);
       });
-      // Sort in memory to avoid Firestore index errors
+
       ordersData.sort((a, b) => {
         const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
         const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
@@ -81,7 +100,16 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
     });
 
     return () => unsubscribe();
-  }, [user, isAdmin]);
+  }, [user, isAdmin, orders]); // Added orders to deps to compare old status
+
+  const sendNotification = (title: string, body: string) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { body, icon: '/logo.png' });
+      // Play a subtle sound
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(() => {}); // Browser might block auto-play
+    }
+  };
 
   const updateOrderStatus = async (orderId: string, newStatus: 'pending' | 'preparing' | 'delivered' | 'completed') => {
     try {
@@ -134,6 +162,21 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
           {isAdmin ? 'Todos los Pedidos' : 'Gestión de Pedidos'}
         </h2>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                  if (permission === "granted") {
+                    alert("¡Notificaciones activadas correctamente!");
+                    sendNotification("Sistema Activo", "Ahora recibirás avisos de los repartidores.");
+                  }
+                });
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+          >
+            <Clock className="w-3.5 h-3.5" /> Activar Avisos
+          </button>
           {!isAdmin && (
             <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm">
               <span className="text-xs font-black uppercase tracking-widest text-emerald-600/70">Ventas Hoy</span>
@@ -199,8 +242,16 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
                   </div>
 
                   {isAdmin && order.storeName && (
-                    <div className="mb-4 text-xs font-bold bg-neutral-50 px-3 py-2 rounded-lg text-neutral-600 border border-neutral-100">
-                      🏪 Negocio: <span className="text-blue-600">{order.storeName}</span>
+                    <div className="mb-4 text-[10px] font-black bg-neutral-50 px-3 py-2 rounded-xl text-neutral-400 border border-neutral-100 flex items-center justify-between">
+                      <span>🏪 ESTABLECIMIENTO:</span>
+                      <span className="text-blue-600 uppercase tracking-tighter">{order.storeName}</span>
+                    </div>
+                  )}
+
+                  {order.driverId && (
+                    <div className="mb-4 text-[10px] font-black bg-cyan-50 px-3 py-2 rounded-xl text-cyan-600 border border-cyan-100 flex items-center justify-between animate-pulse">
+                      <span>🚚 REPARTIDOR ASIGNADO:</span>
+                      <span className="uppercase tracking-tighter">ID: {order.driverId.slice(0,8)}</span>
                     </div>
                   )}
 

@@ -120,24 +120,31 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
   const sendNotification = (title: string, body: string) => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
+    // Play sound first (always works if tab is open)
     try {
-      // Try standard notification
-      const n = new Notification(title, { body, icon: '/logo.png' });
-      
-      // Auto-close after 5 seconds
-      setTimeout(() => n.close(), 5000);
-
-      // Play sound separately
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
       audio.volume = 0.5;
-      audio.play().catch(() => {}); 
+      audio.play().catch(() => {});
+    } catch (ae) {}
+
+    // Show visual notification
+    try {
+      if (navigator.serviceWorker && Notification.permission === "granted") {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, {
+            body,
+            icon: '/logo.png',
+            vibrate: [200, 100, 200],
+            tag: 'order-update',
+            renotify: true
+          });
+        });
+      } else {
+        const n = new Notification(title, { body, icon: '/logo.png' });
+        setTimeout(() => n.close(), 5000);
+      }
     } catch (e) {
-      console.warn("La notificación visual falló, pero el sistema sigue activo:", e);
-      // Fallback: at least try to play the sound
-      try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        audio.play().catch(() => {});
-      } catch (ae) {}
+      console.warn("Error showing notification:", e);
     }
   };
 

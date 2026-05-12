@@ -49,9 +49,22 @@ const statusConfig = {
 export function OrdersView({ viewMode }: { viewMode: string }) {
   const { user, isAdmin } = useAuth();
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [drivers, setDrivers] = useState<Record<string, string>>({}); // {id: name}
   const [loading, setLoading] = useState(true);
 
   const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    // Fetch driver names map
+    const unsubDrivers = onSnapshot(collection(db, 'drivers'), (snap) => {
+      const driverMap: Record<string, string> = {};
+      snap.forEach(doc => {
+        driverMap[doc.id] = doc.data().name || 'Repartidor';
+      });
+      setDrivers(driverMap);
+    });
+    return () => unsubDrivers();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -167,7 +180,6 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
               if ("Notification" in window) {
                 Notification.requestPermission().then(permission => {
                   if (permission === "granted") {
-                    alert("¡Notificaciones activadas correctamente!");
                     sendNotification("Sistema Activo", "Ahora recibirás avisos de los repartidores.");
                   }
                 });
@@ -251,7 +263,7 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
                   {order.driverId && (
                     <div className="mb-4 text-[10px] font-black bg-cyan-50 px-3 py-2 rounded-xl text-cyan-600 border border-cyan-100 flex items-center justify-between animate-pulse">
                       <span>🚚 REPARTIDOR ASIGNADO:</span>
-                      <span className="uppercase tracking-tighter">ID: {order.driverId.slice(0,8)}</span>
+                      <span className="uppercase tracking-tighter">{drivers[order.driverId] || 'Cargando...'}</span>
                     </div>
                   )}
 

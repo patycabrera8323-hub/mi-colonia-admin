@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft, Truck } from 'lucide-react';
 import { auth } from './lib/firebase';
 import { signOut, sendEmailVerification } from 'firebase/auth';
 import { cn } from './lib/utils';
@@ -11,7 +11,7 @@ import OwnerDashboard from './OwnerDashboard';
 export default function DashboardLayout() {
   const { user, userData, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings'>('owner');
+  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings' | 'drivers'>('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
 
@@ -192,6 +192,13 @@ export default function DashboardLayout() {
                 label="Configuración Global" 
                 active={viewMode === 'settings'} 
                 onClick={() => handleNavClick('settings')} 
+              />
+              <NavItem 
+                icon={<Truck />} 
+                label="Repartidores" 
+                active={viewMode === 'drivers'} 
+                onClick={() => handleNavClick('drivers')} 
+                highlight={viewMode !== 'drivers'}
               />
             </div>
           )}

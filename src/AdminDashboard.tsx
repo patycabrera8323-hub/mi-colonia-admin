@@ -10,6 +10,7 @@ import { cn } from './lib/utils';
 import { UserData } from './contexts/AuthContext';
 import { BusinessProductsManager } from './components/BusinessProductsManager';
 import { OrdersView } from './components/OrdersView';
+import { DriversView } from './components/DriversView';
 import { ScheduleInputs } from './components/ScheduleInputs';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -462,6 +463,11 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
     </div>
   </div>
 )}
+      {/* 🚚 SECCIÓN DE REPARTIDORES */}
+      {viewMode === 'drivers' && (
+        <DriversView />
+      )}
+
       {/* 📦 SECCIÓN DE PEDIDOS (ADMIN - GLOBAL O PERSONAL) */}
       {(viewMode === 'orders' || viewMode === 'my-orders') && (
         <OrdersView viewMode={viewMode} />

@@ -237,8 +237,9 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
           </p>
         </div>
 
-        <div className="hidden lg:flex items-center justify-center flex-1 px-8">
-           <img src="/searmo-logo.png" alt="Searmo" className="h-10 w-auto object-contain transition-all duration-300 hover:scale-105" />
+        <div className="hidden lg:flex flex-col items-center justify-center flex-1 px-8 opacity-30 hover:opacity-100 transition-all duration-700 group cursor-default">
+           <img src="/searmo-logo.png" alt="Searmo" className="h-6 w-auto object-contain grayscale group-hover:grayscale-0 transition-all duration-500" />
+           <p className="text-[7px] font-black uppercase tracking-[0.5em] text-neutral-400 mt-1.5">Powered by Searmo</p>
         </div>
 
         <div className="flex items-center gap-3">

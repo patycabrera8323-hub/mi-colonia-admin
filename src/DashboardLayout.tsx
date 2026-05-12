@@ -101,7 +101,7 @@ export default function DashboardLayout() {
              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover rounded-full" />
            </div>
            <div>
-             <span className="font-black tracking-tight text-sm uppercase">Mi Colonia</span>
+             <span className="font-black tracking-tight text-sm uppercase">NegocioYa</span>
              <p className="text-[8px] text-emerald-400 font-bold uppercase tracking-widest leading-none">
                {isAdmin ? 'Súper Admin' : 'Dueño'}
              </p>
@@ -149,7 +149,7 @@ export default function DashboardLayout() {
             />
           </div>
           <div className="text-center w-full">
-            <h2 className="text-orange-500 font-display font-black text-2xl tracking-tight leading-tight mb-1 drop-shadow-sm">MI COLONIA V2</h2>
+            <h2 className="text-orange-500 font-display font-black text-2xl tracking-tight leading-tight mb-1 drop-shadow-sm">NEGOCIOYA</h2>
             <p className="text-white font-bold text-[10px] tracking-widest uppercase mb-3 drop-shadow-sm">ACTUALIZADO ✅</p>
             <div className="w-12 h-px bg-blue-700/50 mx-auto mb-3"></div>
             <p className="text-emerald-400 text-[10px] font-semibold tracking-wider uppercase">

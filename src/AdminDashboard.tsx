@@ -489,7 +489,7 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
              <div className="space-y-4">
                 <div className="bg-blue-50 p-6 rounded-3xl">
                   <h3 className="font-black text-blue-900 uppercase text-sm mb-2">Costos de Suscripción</h3>
-                  <p className="text-xs text-blue-700/80 mb-4">Define cuánto vas a cobrar mensual o anualmente a los negocios por estar en Mi Colonia.</p>
+                  <p className="text-xs text-blue-700/80 mb-4">Define cuánto vas a cobrar mensual o anualmente a los negocios por estar en NegocioYa.</p>
                   <input type="text" placeholder="$0.00 MXN / Mes" disabled className="w-full bg-white rounded-xl p-3 text-sm font-bold cursor-not-allowed opacity-50" />
                 </div>
                 <div className="bg-purple-50 p-6 rounded-3xl">

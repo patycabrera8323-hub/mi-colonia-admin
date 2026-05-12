@@ -236,7 +236,7 @@ export default function Landing() {
                       updateDoc(doc(db, 'businesses', businessId!, 'products', p.id), {
                         views: increment(1)
                       });
-                      const text = `Hola! Me interesa el producto: *${p.name}* de su catálogo en Mi Colonia.\n\nMétodo de pago al recibir: [Efectivo / Tarjeta / Transferencia]\n\n_Visto en Mi Colonia en un Click_`;
+                      const text = `Hola! Me interesa el producto: *${p.name}* de su catálogo en NegocioYa.\n\nMétodo de pago al recibir: [Efectivo / Tarjeta / Transferencia]\n\n_Visto en NegocioYa_`;
                       window.open(`https://wa.me/${publicBusiness.phone.replace(/\s+/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
                     }}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
@@ -258,7 +258,7 @@ export default function Landing() {
 
         <footer className="text-center py-10 opacity-30 hover:opacity-100 transition-opacity">
            <img src="/logo.png" alt="Logo" className="w-10 h-10 mx-auto grayscale mb-2" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Mi Colonia en un Click &copy; 2026</p>
+           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">NegocioYa &copy; 2026</p>
         </footer>
       </div>
     );
@@ -282,7 +282,7 @@ export default function Landing() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h1 className="text-4xl font-display font-black text-white mb-1 tracking-tight drop-shadow-sm">MI COLONIA</h1>
+            <h1 className="text-4xl font-display font-black text-white mb-1 tracking-tight drop-shadow-sm">NEGOCIOYA</h1>
             <p className="text-white text-xl font-bold tracking-widest uppercase drop-shadow-sm">
               EN UN CLICK
             </p>

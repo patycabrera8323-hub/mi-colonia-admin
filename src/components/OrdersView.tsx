@@ -116,11 +116,26 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
   }, [user, isAdmin, orders]); // Added orders to deps to compare old status
 
   const sendNotification = (title: string, body: string) => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(title, { body, icon: '/logo.png' });
-      // Play a subtle sound
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    try {
+      // Try standard notification
+      const n = new Notification(title, { body, icon: '/logo.png' });
+      
+      // Auto-close after 5 seconds
+      setTimeout(() => n.close(), 5000);
+
+      // Play sound separately
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-      audio.play().catch(() => {}); // Browser might block auto-play
+      audio.volume = 0.5;
+      audio.play().catch(() => {}); 
+    } catch (e) {
+      console.warn("La notificación visual falló, pero el sistema sigue activo:", e);
+      // Fallback: at least try to play the sound
+      try {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(() => {});
+      } catch (ae) {}
     }
   };
 

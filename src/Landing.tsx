@@ -256,9 +256,16 @@ export default function Landing() {
           )}
         </main>
 
-        <footer className="text-center py-10 opacity-30 hover:opacity-100 transition-opacity">
-           <img src="/logo.png" alt="Logo" className="w-10 h-10 mx-auto grayscale mb-2" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">NegocioYa &copy; 2026</p>
+        <div className="max-w-4xl mx-auto px-12 mb-8">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+        </div>
+
+        <footer className="max-w-4xl mx-auto px-6 py-12 text-center">
+          <div className="flex flex-col items-center gap-2 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
+             <img src="/searmo-logo.png" alt="Searmo" className="h-6 w-auto object-contain mb-1" />
+             <p className="text-[8px] font-black uppercase tracking-[0.4em] text-neutral-400">Powered by Searmo</p>
+             <p className="text-[6px] font-bold text-neutral-300 mt-2">NEGOCIOYA &copy; 2026</p>
+          </div>
         </footer>
       </div>
     );

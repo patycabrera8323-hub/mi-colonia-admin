@@ -470,12 +470,12 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
            <h2 className="text-3xl font-black text-blue-950 uppercase tracking-tighter">¿Necesitas ayuda con el sistema?</h2>
            <p className="text-neutral-500 max-w-lg mx-auto font-medium">
              Este es tu canal directo de comunicación con soporte técnico. Si algo falla o necesitas implementar nuevas funciones, contáctame:
-           </p>
+            </p>
            <div className="flex flex-col items-center gap-4 pt-6">
              <a href="https://wa.me/5215620950668" target="_blank" rel="noopener noreferrer" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-200">
                Enviar WhatsApp a Soporte
              </a>
-             <p className="text-sm font-bold text-neutral-400">Email: patycabrera8323@gmail.com</p>
+             <p className="text-sm font-bold text-neutral-400">Email: seramoco@gmail.com</p>
            </div>
         </div>
       )}

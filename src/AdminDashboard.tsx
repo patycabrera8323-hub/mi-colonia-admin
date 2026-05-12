@@ -236,6 +236,11 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
             Monitoriza el pulso de la plataforma, valida pagos y gestiona el ecosistema de negocios en tiempo real.
           </p>
         </div>
+
+        <div className="hidden lg:flex items-center justify-center flex-1 px-8">
+           <img src="/searmo-logo.png" alt="Searmo" className="h-10 w-auto object-contain transition-all duration-300 hover:scale-105" />
+        </div>
+
         <div className="flex items-center gap-3">
           <div className="bg-white px-4 py-2 rounded-2xl border border-neutral-100 shadow-sm">
              <p className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] mb-0.5">Estado de la Red</p>

@@ -17,7 +17,7 @@ interface OrderData {
   clientId: string;
   storeId: string;
   storeName?: string;
-  status: 'pending' | 'preparing' | 'delivered' | 'completed';
+  status: 'pending' | 'confirmed' | 'accepted' | 'preparing' | 'on_route' | 'delivered' | 'cancelled' | 'completed';
   deliveryLocation?: {
     address: string;
     lat: number;
@@ -37,13 +37,14 @@ interface OrderData {
 }
 
 const statusConfig = {
-  pending: { label: 'Orden Recibida', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-  preparing: { label: 'Preparando Orden', icon: ChefHat, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-  accepted: { label: 'Repartidor Asignado', icon: Truck, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
-  picked_up: { label: 'Pedido Recolectado', icon: ShoppingBag, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
-  on_way: { label: 'Repartidor en Camino', icon: Bike, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-  delivered: { label: 'Entregado a Cliente', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-  completed: { label: 'Compra Finalizada', icon: ShoppingBag, color: 'text-neutral-500', bg: 'bg-neutral-100', border: 'border-neutral-200' },
+  pending:   { label: 'Nuevo Pedido',          icon: Clock,         color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200' },
+  confirmed: { label: 'Confirmado',             icon: CheckCircle2,  color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-200' },
+  accepted:  { label: 'Repartidor Asignado',   icon: Bike,          color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200' },
+  preparing: { label: 'En Preparación',        icon: ChefHat,       color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-200' },
+  on_route:  { label: 'En Camino',             icon: Truck,         color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-200' },
+  delivered: { label: 'Entregado al Cliente',  icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  completed: { label: 'Venta Finalizada',      icon: ShoppingBag,   color: 'text-neutral-500', bg: 'bg-neutral-100',border: 'border-neutral-200' },
+  cancelled: { label: 'Cancelado',             icon: PackageOpen,   color: 'text-red-600',     bg: 'bg-red-50',     border: 'border-red-200' },
 };
 
 export function OrdersView({ viewMode }: { viewMode: string }) {
@@ -89,9 +90,13 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
           const newData = change.doc.data() as OrderData;
           const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
           
-          // Trigger notification if status changed to accepted
+          // Notificar al negocio cuando un repartidor acepta
           if (newData.status === 'accepted' && (!oldData || oldData.status !== 'accepted')) {
-            sendNotification(`¡Pedido Aceptado!`, `El repartidor ha tomado el pedido #${change.doc.id.slice(0,6)}`);
+            sendNotification(`🚵 Repartidor Asignado`, `El repartidor aceptó el pedido #${change.doc.id.slice(0,6).toUpperCase()}`);
+          }
+          // Notificar al negocio cuando el repartidor entrega
+          if (newData.status === 'delivered' && (!oldData || oldData.status !== 'delivered')) {
+            sendNotification(`✅ Pedido Entregado`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} fue entregado al cliente.`);
           }
         }
       });
@@ -148,7 +153,7 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: 'pending' | 'preparing' | 'delivered' | 'completed') => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderData['status']) => {
     try {
       await updateDoc(doc(db, 'orders', orderId), {
         status: newStatus
@@ -337,52 +342,88 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
                     </div>
                   )}
 
-                  {/* Actions */}
-                  {order.status !== 'completed' ? (
+                  {/* === ACCIONES DEL NEGOCIO POR ESTADO === */}
+                  {order.status !== 'completed' && order.status !== 'cancelled' ? (
                     <div className="mt-auto">
-                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2 text-center">Cambiar Estado</p>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'pending')}
-                          className={cn("py-2 rounded-xl text-xs font-black uppercase transition-all border-2", 
-                            currentStatus === 'pending' ? "bg-amber-100 border-amber-200 text-amber-700" : "bg-white border-neutral-100 text-neutral-400 hover:border-amber-200 hover:text-amber-600"
-                          )}
-                        >
-                          Recibida
-                        </button>
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'preparing')}
-                          className={cn("py-2 rounded-xl text-xs font-black uppercase transition-all border-2", 
-                            currentStatus === 'preparing' ? "bg-blue-100 border-blue-200 text-blue-700" : "bg-white border-neutral-100 text-neutral-400 hover:border-blue-200 hover:text-blue-600"
-                          )}
-                        >
-                          Preparando
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'delivered')}
-                          className={cn("py-2 rounded-xl text-xs font-black uppercase transition-all border-2", 
-                            currentStatus === 'delivered' ? "bg-emerald-100 border-emerald-200 text-emerald-700" : "bg-white border-neutral-100 text-neutral-400 hover:border-emerald-200 hover:text-emerald-600"
-                          )}
-                        >
-                          A Repartidor
-                        </button>
-                        <button
-                          onClick={() => {
-                            if(confirm("¿Estás seguro de marcar esta orden como finalizada? Se moverá al historial y sumará a tus ventas del día.")) {
-                              updateOrderStatus(order.id, 'completed')
-                            }
-                          }}
-                          className="py-2 rounded-xl text-xs font-black uppercase transition-all border-2 bg-neutral-900 border-black text-white hover:bg-neutral-800"
-                        >
-                          Finalizar
-                        </button>
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2 text-center">Gestión del Comercio</p>
+                      <div className="flex flex-col gap-2">
+
+                        {/* 1. PENDING → CONFIRMED */}
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                            className="py-3 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase transition-all hover:bg-emerald-600 shadow-sm"
+                          >
+                            ✅ Confirmar Pedido
+                          </button>
+                        )}
+
+                        {/* 2. CONFIRMED → Esperando repartidor */}
+                        {order.status === 'confirmed' && (
+                          <div className="py-3 bg-teal-50 text-teal-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-teal-100">
+                            🚵 Esperando que un repartidor acepte...
+                          </div>
+                        )}
+
+                        {/* 3. ACCEPTED → PREPARING */}
+                        {order.status === 'accepted' && (
+                          <button
+                            onClick={() => updateOrderStatus(order.id, 'preparing')}
+                            className="py-3 bg-orange-500 text-white rounded-xl text-xs font-black uppercase transition-all hover:bg-orange-600 shadow-sm"
+                          >
+                            👨‍🍳 Comenzar Preparación
+                          </button>
+                        )}
+
+                        {/* 4. PREPARING → ON_ROUTE */}
+                        {order.status === 'preparing' && (
+                          <button
+                            onClick={() => updateOrderStatus(order.id, 'on_route')}
+                            className="py-3 bg-purple-500 text-white rounded-xl text-xs font-black uppercase transition-all hover:bg-purple-600 shadow-sm"
+                          >
+                            📦 Entregar al Repartidor (En Ruta)
+                          </button>
+                        )}
+
+                        {/* 5. ON_ROUTE → Info solo */}
+                        {order.status === 'on_route' && (
+                          <div className="py-3 bg-purple-50 text-purple-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-purple-100">
+                            🚀 Pedido en camino al cliente...
+                          </div>
+                        )}
+
+                        {/* 6. DELIVERED → COMPLETED */}
+                        {order.status === 'delivered' && (
+                          <button
+                            onClick={() => {
+                              if (confirm('¿Finalizar este pedido? Se moverá al historial y sumará a tus ventas.')) {
+                                updateOrderStatus(order.id, 'completed');
+                              }
+                            }}
+                            className="py-3 bg-neutral-900 text-white rounded-xl text-xs font-black uppercase transition-all hover:bg-neutral-800 shadow-sm"
+                          >
+                            🏁 Finalizar y Archivar
+                          </button>
+                        )}
+
+                        {/* Cancel button always available on active orders */}
+                        {['pending','confirmed','accepted','preparing'].includes(order.status) && (
+                          <button
+                            onClick={() => {
+                              if (confirm('¿Cancelar este pedido?')) updateOrderStatus(order.id, 'cancelled');
+                            }}
+                            className="py-2 border border-red-100 text-red-400 rounded-xl text-[10px] font-black uppercase transition-all hover:bg-red-50"
+                          >
+                            ✕ Cancelar Pedido
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
                     <div className="mt-auto pt-4 border-t border-neutral-100 text-center">
-                       <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Esta orden está en el historial</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+                        {order.status === 'completed' ? '✅ Archivado en historial' : '✕ Orden Cancelada'}
+                      </span>
                     </div>
                   )}
                 </motion.div>

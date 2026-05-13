@@ -156,17 +156,20 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isAdmin() || 
-        (isSignedIn() && resource.data.storeId == request.auth.uid) ||
+        // Business owner manages their own orders
+        (isSignedIn() && resource.data.storeId == request.auth.uid &&
+         request.resource.data.status in ['confirmed', 'preparing', 'on_route', 'completed', 'cancelled']) ||
         (isSignedIn() && (
-          // Driver accepting a pending order
-          (resource.data.status == 'pending' && 
-           request.resource.data.status == 'accepted' && 
+          // Driver claiming a confirmed order
+          (resource.data.status == 'confirmed' &&
+           !resource.data.keys().contains('driverId') && 
            request.resource.data.driverId == request.auth.uid && 
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'driverId', 'acceptedAt'])) ||
+           request.resource.data.status == 'accepted' &&
+           request.resource.data.diff(resource.data).affectedKeys().hasAny(['driverId', 'acceptedAt', 'status'])) ||
           
-          // Driver updating their assigned order
+          // Driver updating their assigned order to delivered/cancelled
           (resource.data.driverId == request.auth.uid && 
-           request.resource.data.status in ['accepted', 'picked_up', 'on_way', 'delivered', 'cancelled'] &&
+           request.resource.data.status in ['delivered', 'cancelled'] &&
            request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'deliveredAt', 'updatedAt']))
         ));
       allow delete: if isAdmin();

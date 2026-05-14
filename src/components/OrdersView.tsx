@@ -86,19 +86,7 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
       const ordersData: OrderData[] = [];
       
       snapshot.docChanges().forEach((change) => {
-        if (change.type === "modified") {
-          const newData = change.doc.data() as OrderData;
-          const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
-          
-          // Notificar al negocio cuando un repartidor acepta
-          if (newData.status === 'accepted' && (!oldData || oldData.status !== 'accepted')) {
-            sendNotification(`🚵 Repartidor Asignado`, `El repartidor aceptó el pedido #${change.doc.id.slice(0,6).toUpperCase()}`);
-          }
-          // Notificar al negocio cuando el repartidor entrega
-          if (newData.status === 'delivered' && (!oldData || oldData.status !== 'delivered')) {
-            sendNotification(`✅ Pedido Entregado`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} fue entregado al cliente.`);
-          }
-        }
+        // La lógica de notificaciones se movió a DashboardLayout para ser global
       });
 
       snapshot.forEach((doc) => {
@@ -204,27 +192,6 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
           {isAdmin ? 'Todos los Pedidos' : 'Gestión de Pedidos'}
         </h2>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => {
-              if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
-                  if (permission === "granted") {
-                    sendNotification("Sistema Activo", "Ahora recibirás avisos de los repartidores.");
-                  }
-                });
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
-          >
-            <Clock className="w-3.5 h-3.5" /> Activar Avisos
-          </button>
-          
-          <button 
-            onClick={() => sendNotification("Prueba de Sonido", "Si escuchas esto, las notificaciones están activas.")}
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-50 text-neutral-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-neutral-100 hover:bg-neutral-100 transition-all"
-          >
-            <Zap className="w-3.5 h-3.5" /> Probar
-          </button>
           {!isAdmin && (
             <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm">
               <span className="text-xs font-black uppercase tracking-widest text-emerald-600/70">Ventas Hoy</span>

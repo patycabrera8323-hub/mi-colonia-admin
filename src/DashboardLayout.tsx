@@ -1,7 +1,9 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft, Truck } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft, Truck, Bell, BellOff, Zap } from 'lucide-react';
+import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { db } from './lib/firebase';
 import { auth } from './lib/firebase';
 import { signOut, sendEmailVerification } from 'firebase/auth';
 import { cn } from './lib/utils';
@@ -14,6 +16,8 @@ export default function DashboardLayout() {
   const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings' | 'drivers'>('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
+  const [notificationsAllowed, setNotificationsAllowed] = React.useState<NotificationPermission | 'not-supported'>('default');
+  const prevOrdersRef = React.useRef<any[]>([]);
 
   const resendVerification = async () => {
     if (!user) return;
@@ -34,6 +38,102 @@ export default function DashboardLayout() {
       setViewMode(isAdmin ? 'admin' : 'owner');
     }
   }, [isAdmin, loading]);
+
+  // Notification State & Permissions
+  React.useEffect(() => {
+    if (!("Notification" in window)) {
+      setNotificationsAllowed('not-supported');
+      return;
+    }
+    setNotificationsAllowed(Notification.permission);
+  }, []);
+
+  const requestNotificationPermission = () => {
+    if ("Notification" in window) {
+      Notification.requestPermission().then(permission => {
+        setNotificationsAllowed(permission);
+        if (permission === 'granted') {
+          sendNotification("✅ Sistema de Avisos Activo", "Recibirás alertas sonoras de nuevos pedidos.");
+        }
+      });
+    }
+  };
+
+  const sendNotification = (title: string, body: string) => {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    // Play sound
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.volume = 0.6;
+      audio.play().catch(() => {
+        console.warn("Autoplay blocked - interaction needed");
+      });
+    } catch (ae) {}
+
+    // Show banner
+    try {
+      if (navigator.serviceWorker && Notification.permission === "granted") {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, {
+            body,
+            icon: '/logo.png',
+            vibrate: [200, 100, 200],
+            tag: 'order-update',
+            renotify: true
+          });
+        });
+      } else {
+        new Notification(title, { body, icon: '/logo.png' });
+      }
+    } catch (e) {
+      console.warn("Error showing notification banner:", e);
+    }
+  };
+
+  // Global Order Listener
+  React.useEffect(() => {
+    if (!user || loading) return;
+
+    let q;
+    if (isAdmin) {
+      q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(20));
+    } else {
+      q = query(collection(db, 'orders'), where('storeId', '==', user.uid), orderBy('createdAt', 'desc'), limit(20));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const now = Date.now();
+      
+      snapshot.docChanges().forEach((change) => {
+        const newData = change.doc.data() as any;
+        const orderTime = newData.createdAt?.toMillis ? newData.createdAt.toMillis() : (newData.createdAt || 0);
+        const isRecent = orderTime > (now - 120000); // Last 2 minutes
+
+        if (change.type === "added" && isRecent && newData.status === 'pending') {
+          sendNotification(`🔥 ¡NUEVO PEDIDO!`, `Has recibido un nuevo pedido de ${newData.clientId || 'un cliente'}.`);
+        }
+
+        if (change.type === "modified") {
+          const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
+          if (oldData && oldData.status !== newData.status) {
+            // Notificar cambios importantes
+            if (newData.status === 'accepted') {
+              sendNotification(`🚵 Repartidor Asignado`, `Un repartidor aceptó el pedido #${change.doc.id.slice(0,6).toUpperCase()}`);
+            } else if (newData.status === 'delivered') {
+              sendNotification(`✅ Pedido Entregado`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} fue entregado con éxito.`);
+            }
+          }
+        }
+      });
+
+      const allOrders: any[] = [];
+      snapshot.forEach(doc => allOrders.push({ id: doc.id, ...doc.data() }));
+      prevOrdersRef.current = allOrders;
+    });
+
+    return () => unsubscribe();
+  }, [user, loading, isAdmin]);
 
   if (loading) return <div className="h-screen flex items-center justify-center">Cargando...</div>;
   if (!user) return <Navigate to="/" />;
@@ -155,6 +255,31 @@ export default function DashboardLayout() {
             <p className="text-emerald-400 text-[10px] font-semibold tracking-wider uppercase">
               {isAdmin ? 'Súper Usuario' : 'Dueño de Negocio'}
             </p>
+          </div>
+          
+          {/* Global Notification Button */}
+          <div className="mt-4 w-full px-4 space-y-2">
+            <button 
+              onClick={requestNotificationPermission}
+              className={cn(
+                "w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
+                notificationsAllowed === 'granted' 
+                  ? "bg-emerald-500 text-white shadow-emerald-900/20" 
+                  : "bg-amber-500 text-white shadow-amber-900/20 animate-pulse border-2 border-white/20"
+              )}
+            >
+              {notificationsAllowed === 'granted' ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+              {notificationsAllowed === 'granted' ? "Avisos Activos" : "Activar Avisos"}
+            </button>
+            
+            {notificationsAllowed === 'granted' && (
+              <button 
+                onClick={() => sendNotification("🔔 Prueba de Sonido", "Si escuchas esto, las alertas están configuradas correctamente.")}
+                className="w-full flex items-center justify-center gap-2 py-2 bg-white/10 text-white/70 hover:text-white hover:bg-white/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 border border-white/5"
+              >
+                <Zap className="w-3 h-3" /> Probar Sonido
+              </button>
+            )}
           </div>
         </div>
 

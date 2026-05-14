@@ -41,6 +41,7 @@ const statusConfig = {
   confirmed: { label: 'Confirmado',             icon: CheckCircle2,  color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-200' },
   accepted:  { label: 'Repartidor Asignado',   icon: Bike,          color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200' },
   preparing: { label: 'En Preparación',        icon: ChefHat,       color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-200' },
+  ready:     { label: 'Pedido Realizado',       icon: ShoppingBag,   color: 'text-cyan-600',    bg: 'bg-cyan-50',    border: 'border-cyan-200' },
   on_route:  { label: 'En Camino',             icon: Truck,         color: 'text-purple-600',  bg: 'bg-purple-50',  border: 'border-purple-200' },
   delivered: { label: 'Entregado al Cliente',  icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   completed: { label: 'Venta Finalizada',      icon: ShoppingBag,   color: 'text-neutral-500', bg: 'bg-neutral-100',border: 'border-neutral-200' },
@@ -86,7 +87,26 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
       const ordersData: OrderData[] = [];
       
       snapshot.docChanges().forEach((change) => {
-        // La lógica de notificaciones se movió a DashboardLayout para ser global
+        if (change.type === 'added') {
+          const order = change.doc.data() as any;
+          if (order.status === 'pending') {
+            sendNotification("🔔 Nuevo Pedido", "Tienes una nueva orden pendiente por confirmar.");
+          }
+        }
+        if (change.type === 'modified') {
+          const order = change.doc.data() as any;
+          const oldOrder = prevOrdersRef.current.find(o => o.id === change.doc.id);
+          
+          if (oldOrder && oldOrder.status !== order.status) {
+            if (order.status === 'accepted') {
+              sendNotification("🚚 Repartidor Asignado", `El repartidor ha aceptado el pedido #${change.doc.id.slice(0,6)}`);
+            } else if (order.status === 'on_route') {
+              sendNotification("🛵 En Camino", "El repartidor ha iniciado la ruta de entrega.");
+            } else if (order.status === 'delivered') {
+              sendNotification("✅ Pedido Entregado", "El cliente ha recibido su pedido.");
+            }
+          }
+        }
       });
 
       snapshot.forEach((doc) => {
@@ -342,17 +362,24 @@ export function OrdersView({ viewMode }: { viewMode: string }) {
                           </button>
                         )}
 
-                        {/* 4. PREPARING → ON_ROUTE */}
+                        {/* 4. PREPARING → READY */}
                         {order.status === 'preparing' && (
                           <button
-                            onClick={() => updateOrderStatus(order.id, 'on_route')}
-                            className="py-3 bg-purple-500 text-white rounded-xl text-xs font-black uppercase transition-all hover:bg-purple-600 shadow-sm"
+                            onClick={() => updateOrderStatus(order.id, 'ready')}
+                            className="py-3 bg-cyan-500 text-black rounded-xl text-xs font-black uppercase transition-all hover:bg-cyan-600 shadow-sm"
                           >
-                            📦 Entregar al Repartidor (En Ruta)
+                            📦 Pedido Realizado (Listo)
                           </button>
                         )}
 
-                        {/* 5. ON_ROUTE → Info solo */}
+                        {/* 5. READY → Info (Esperando repartidor) */}
+                        {order.status === 'ready' && (
+                          <div className="py-3 bg-cyan-50 text-cyan-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-cyan-100">
+                            🚵 Esperando que el repartidor inicie ruta...
+                          </div>
+                        )}
+
+                        {/* 6. ON_ROUTE → Info solo */}
                         {order.status === 'on_route' && (
                           <div className="py-3 bg-purple-50 text-purple-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-purple-100">
                             🚀 Pedido en camino al cliente...

@@ -120,6 +120,12 @@ export default function DashboardLayout() {
             // Notificar cambios importantes
             if (newData.status === 'accepted') {
               sendNotification(`🚵 Repartidor Asignado`, `Un repartidor aceptó el pedido #${change.doc.id.slice(0,6).toUpperCase()}`);
+            } else if (newData.status === 'preparing') {
+              sendNotification(`👨‍🍳 En Preparación`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} ha comenzado a prepararse.`);
+            } else if (newData.status === 'ready') {
+              sendNotification(`📦 Pedido Realizado`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} está listo para su recolección.`);
+            } else if (newData.status === 'on_route') {
+              sendNotification(`🛵 En Camino`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} va en ruta de entrega.`);
             } else if (newData.status === 'delivered') {
               sendNotification(`✅ Pedido Entregado`, `El pedido #${change.doc.id.slice(0,6).toUpperCase()} fue entregado con éxito.`);
             }

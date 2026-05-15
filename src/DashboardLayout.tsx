@@ -364,6 +364,13 @@ export default function DashboardLayout() {
               onClick={() => handleNavClick('analytics')} 
             />
             <NavItem 
+              icon={<Megaphone />} 
+              label="🔥 Mis Promociones" 
+              active={viewMode === 'promotions'} 
+              onClick={() => handleNavClick('promotions')} 
+              highlight={viewMode !== 'promotions'}
+            />
+            <NavItem 
               icon={<MessageSquare />} 
               label="Soporte Técnico" 
               active={viewMode === 'support'} 

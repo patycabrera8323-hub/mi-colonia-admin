@@ -13,6 +13,7 @@ import { OrdersView } from './components/OrdersView';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { PromotionsManager } from './components/PromotionsManager';
 
 interface BusinessData {
   ownerId: string;
@@ -541,10 +542,15 @@ export default function OwnerDashboard({ viewMode = 'owner' }: { viewMode?: stri
     </div>
   )}
 
-   {/* 📦 SECCIÓN DE PEDIDOS (DUEÑO) */}
-   {(viewMode === 'orders' || viewMode === 'my-orders') && (
-     <OrdersView viewMode={viewMode} />
-   )}
+      {/* 📦 SECCIÓN DE PEDIDOS */}
+      {(viewMode === 'orders' || viewMode === 'my-orders') && (
+        <OrdersView viewMode={viewMode} />
+      )}
+
+      {/* 🔥 SECCIÓN DE PROMOCIONES */}
+      {viewMode === 'promotions' && (
+        <PromotionsManager />
+      )}
 
   {/* 💬 SECCIÓN DE SOPORTE PARA DUEÑOS */}
   {viewMode === 'support' && (

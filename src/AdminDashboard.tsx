@@ -11,6 +11,7 @@ import { UserData } from './contexts/AuthContext';
 import { BusinessProductsManager } from './components/BusinessProductsManager';
 import { OrdersView } from './components/OrdersView';
 import { DriversView } from './components/DriversView';
+import { PromotionsManager } from './components/PromotionsManager';
 import { ScheduleInputs } from './components/ScheduleInputs';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -466,6 +467,11 @@ export default function AdminDashboard({ viewMode = 'admin' }: { viewMode?: stri
       {/* 🚚 SECCIÓN DE REPARTIDORES */}
       {viewMode === 'drivers' && (
         <DriversView />
+      )}
+
+      {/* 🔥 SECCIÓN DE PROMOCIONES (CARRUSEL) */}
+      {viewMode === 'promotions' && (
+        <PromotionsManager />
       )}
 
       {/* 📦 SECCIÓN DE PEDIDOS (ADMIN - GLOBAL O PERSONAL) */}

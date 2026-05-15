@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft, Truck, Bell, BellOff, Zap } from 'lucide-react';
+import { LogOut, Store, LayoutDashboard, Users, Settings as SettingsIcon, Menu, X, PieChart, MessageSquare, Package, ShoppingBag, Mail, RefreshCw, ArrowLeft, Truck, Bell, BellOff, Zap, Megaphone } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { auth } from './lib/firebase';
@@ -13,7 +13,7 @@ import OwnerDashboard from './OwnerDashboard';
 export default function DashboardLayout() {
   const { user, userData, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings' | 'drivers'>('owner');
+  const [viewMode, setViewMode] = React.useState<'admin' | 'owner' | 'orders' | 'analytics' | 'support' | 'settings' | 'drivers' | 'promotions'>('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
   const [notificationsAllowed, setNotificationsAllowed] = React.useState<NotificationPermission | 'not-supported'>('default');
@@ -330,6 +330,13 @@ export default function DashboardLayout() {
                 active={viewMode === 'drivers'} 
                 onClick={() => handleNavClick('drivers')} 
                 highlight={viewMode !== 'drivers'}
+              />
+              <NavItem 
+                icon={<Megaphone />} 
+                label="🔥 Promociones" 
+                active={viewMode === 'promotions'} 
+                onClick={() => handleNavClick('promotions')} 
+                highlight={viewMode !== 'promotions'}
               />
             </div>
           )}

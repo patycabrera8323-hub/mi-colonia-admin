@@ -45,6 +45,15 @@ export default defineConfig(({mode}) => {
               purpose: 'maskable'
             }
           ]
+        },
+        workbox: {
+          swDest: 'sw.js',
+          skipWaiting: true,
+          clientsClaim: true,
+        },
+        devOptions: {
+          enabled: true,
+          type: 'module'
         }
       })
     ],

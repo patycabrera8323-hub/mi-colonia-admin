@@ -396,7 +396,7 @@ export default function DashboardLayout() {
 
         <div className="p-4 border-t border-blue-800 bg-blue-950/20">
           <div className="mb-4">
-            <p className="text-sm font-bold text-white truncate">{userData?.name || user.email}</p>
+            <p className="text-sm font-bold text-white truncate">{userData?.name || user.displayName || 'Administrador'}</p>
             <p className="text-[10px] text-blue-400 truncate uppercase tracking-widest">{user.email}</p>
           </div>
           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-400 border border-red-500/20 hover:text-white hover:bg-red-600 hover:border-red-500 p-3 rounded-xl transition-all text-sm font-black uppercase tracking-widest active:scale-95 shadow-sm">
